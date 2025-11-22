@@ -11,7 +11,6 @@
         body {
             font-family: 'Inter', sans-serif;
             background-color: #f7f7f7;
-            min-height: 100vh;
         }
         .card {
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.06);
@@ -28,438 +27,741 @@
         .btn-primary:hover {
             background-color: #004f77;
         }
-        /* Style pour l'indicateur de chargement/réussite */
-        .loading-ring {
-            display: inline-block;
-            width: 1.25rem;
-            height: 1.25rem;
-            border: 3px solid rgba(255, 255, 255, 0.3);
-            border-radius: 50%;
-            border-top-color: #fff;
-            animation: spin 1s ease-in-out infinite;
+        /* Style pour les erreurs des champs de formulaire */
+        .input-error {
+            border-color: #ef4444;
         }
-        @keyframes spin {
-            to { transform: rotate(360deg); }
+        /* Assure que la zone d'alerte d'erreur est bien visible */
+        #error-message-box {
+            background-color: #fee2e2;
+            color: #ef4444;
+            border: 1px solid #fca5a5;
+        }
+        /* Fixe la taille de la zone du quiz pour éviter les CLS */
+        #quiz-section {
+            min-height: 250px;
         }
     </style>
 </head>
-<body class="p-4 sm:p-8">
-
+<body class="p-4 sm:p-6 md:p-8">
     <div class="max-w-4xl mx-auto">
-        <header class="text-center mb-8">
-            <h1 class="text-3xl font-bold text-gray-800 mb-2">Carnet de Vocabulaire B1</h1>
-            <p class="text-lg text-gray-600">Ajoutez, révisez et suivez vos mots pour le niveau intermédiaire.</p>
-            <!-- Affichage de l'état d'authentification et de l'ID utilisateur pour le débogage/traçabilité -->
-            <p id="auth-status" class="text-xs mt-2 text-gray-500 font-semibold">Connexion en cours...</p>
-        </header>
-
-        <!-- Formulaire d'ajout de mot -->
-        <div class="card bg-white p-6 rounded-lg mb-8">
-            <h2 class="text-xl font-semibold text-gray-700 mb-4">Ajouter un nouveau mot</h2>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <input type="text" id="frenchWord" placeholder="Mot français (ex: déboucher)" class="p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
-                <input type="text" id="translation" placeholder="Traduction (ex: to unblock)" class="p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
-                <input type="text" id="example" placeholder="Phrase d'exemple (Optionnel)" class="p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+        <h1 class="text-3xl font-extrabold text-gray-900 mb-6 border-b pb-2">🧠 Carnet de Vocabulaire B1</h1>
+        
+        <!-- Section Statut de Connexion et Message d'Erreur -->
+        <div id="status-and-error" class="mb-6 space-y-3">
+            <div id="auth-status" class="flex items-center p-3 rounded-lg text-sm font-medium">
+                <div id="auth-status-icon" class="w-4 h-4 rounded-full mr-2 bg-yellow-400"></div>
+                <p id="auth-status-p" class="text-gray-700">Initialisation de la connexion...</p>
             </div>
-            <button id="addWordBtn" class="btn-primary text-white font-bold py-3 px-6 rounded-lg w-full mt-4 hover:shadow-md transition duration-150" aria-label="Ajouter le mot au carnet" disabled>
-                <span id="addWordText">Ajouter à mon carnet</span>
-                <span id="addWordLoading" class="loading-ring hidden"></span>
-            </button>
-            <div id="message-box" class="mt-4 text-center text-sm hidden"></div>
+            <!-- Zone pour afficher les erreurs de configuration (visible si erreur) -->
+            <div id="error-message-box" class="hidden p-4 rounded-lg">
+                <p class="font-bold">Erreur de Configuration!</p>
+                <p id="error-message"></p>
+            </div>
         </div>
 
-        <!-- Section de Révision Rapide (Quiz) -->
-        <div class="card bg-white p-6 rounded-lg mb-8">
-            <h2 class="text-xl font-semibold text-gray-700 mb-4 flex justify-between items-center">
-                Révision Rapide
-                <button id="startQuizBtn" class="bg-green-500 text-white text-sm font-semibold py-1 px-4 rounded-full hover:bg-green-600 transition duration-150" aria-label="Démarrer la session de quiz" disabled>
-                    Démarrer le Quiz
-                </button>
-            </h2>
-            <div id="quiz-area" class="text-center mt-4">
-                <p id="quiz-message" class="text-gray-500">En attente de chargement des mots...</p>
-                <div id="quiz-question" class="hidden">
-                    <p class="text-2xl font-bold text-gray-800 mb-3" id="current-word">Mot en français</p>
-                    <input type="text" id="quiz-answer" placeholder="Votre traduction..." class="p-3 border border-gray-300 rounded-lg w-full max-w-sm text-center focus:ring-green-500 focus:border-green-500 mx-auto block mb-3">
-                    <button id="submitAnswerBtn" class="bg-gray-500 text-white font-semibold py-2 px-6 rounded-lg hover:bg-gray-600 transition duration-150" aria-label="Vérifier la réponse">
-                        Vérifier
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            
+            <!-- Colonne 1: Ajouter un mot -->
+            <div class="lg:col-span-1 card bg-white p-6 rounded-xl">
+                <h2 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-green-600" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clip-rule="evenodd" />
+                    </svg>
+                    Ajouter un Mot
+                </h2>
+                <div class="space-y-3">
+                    <input type="text" id="french-word-input" placeholder="Mot en Français" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" maxlength="50">
+                    <input type="text" id="translation-input" placeholder="Traduction / Définition" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" maxlength="100">
+                    <textarea type="text" id="example-input" placeholder="Phrase d'exemple (pour le contexte)" rows="2" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"></textarea>
+                    <button id="add-word-btn" class="w-full btn-primary text-white font-bold py-2 px-4 rounded-lg shadow-md hover:shadow-lg disabled:opacity-50" disabled>
+                        Ajouter au Carnet
                     </button>
-                    <p id="feedback" class="mt-2 font-semibold"></p>
+                </div>
+            </div>
+
+            <!-- Colonne 2: Quiz de Révision -->
+            <div class="lg:col-span-2 card bg-white p-6 rounded-xl">
+                <h2 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-blue-600" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L14 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 110-6 3 3 0 010 6z" />
+                    </svg>
+                    Quiz de Révision Intelligent
+                </h2>
+                
+                <div id="quiz-section" class="flex flex-col justify-center items-center text-center p-4">
+                    <div id="quiz-initial-state">
+                        <p class="text-gray-600 mb-4">La révision priorise les mots avec le taux d'erreur le plus élevé.</p>
+                        <button id="start-quiz-btn" class="btn-primary text-white font-bold py-2 px-6 rounded-full shadow-lg hover:shadow-xl disabled:opacity-50" disabled>
+                            Commencer le Quiz (5 mots)
+                        </button>
+                    </div>
+                    
+                    <div id="quiz-active-state" class="hidden w-full max-w-sm">
+                        <p id="quiz-progress" class="text-sm text-gray-500 mb-1"></p>
+                        <p id="quiz-word" class="text-2xl font-bold text-gray-800 mb-3"></p>
+                        <p id="quiz-hint" class="text-sm text-yellow-600 mb-4 p-2 bg-yellow-50 rounded-lg hidden"></p>
+                        <input type="text" id="quiz-answer-input" placeholder="Votre réponse" class="w-full p-3 border border-gray-300 rounded-lg text-lg focus:ring-blue-500 focus:border-blue-500 mb-3">
+                        
+                        <div class="flex space-x-2">
+                            <button id="submit-answer-btn" class="flex-1 btn-primary text-white font-bold py-2 rounded-lg shadow-md hover:shadow-lg">
+                                Soumettre
+                            </button>
+                            <button id="hint-btn" class="w-1/4 bg-gray-200 text-gray-800 font-bold py-2 rounded-lg hover:bg-gray-300 shadow-md">
+                                Indice
+                            </button>
+                        </div>
+
+                        <div id="quiz-feedback" class="mt-4 p-3 rounded-lg font-semibold hidden"></div>
+                    </div>
+                    
+                    <div id="quiz-results-state" class="hidden w-full max-w-sm">
+                        <h3 class="text-2xl font-bold text-green-600 mb-4">Quiz Terminé ! 🎉</h3>
+                        <p id="results-summary" class="text-gray-700 mb-6"></p>
+                        <button id="restart-quiz-btn" class="btn-primary text-white font-bold py-2 px-6 rounded-full shadow-lg hover:shadow-xl">
+                            Recommencer
+                        </button>
+                    </div>
+
+                    <div id="quiz-no-words-state" class="hidden text-center p-8 bg-gray-100 rounded-lg">
+                        <p class="text-gray-600 font-semibold">Le carnet est vide.</p>
+                        <p class="text-sm text-gray-500 mt-2">Ajoutez au moins 5 mots pour commencer la révision.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Colonne 3 (sous la colonne 1 sur mobile): Liste de Vocabulaire -->
+            <div class="lg:col-span-3 card bg-white p-6 rounded-xl mt-8">
+                <h2 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-purple-600" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h3a1 1 0 011 1v3a1 1 0 01-1 1H4a1 1 0 01-1-1V4zm9 1a1 1 0 00-1 1v3a1 1 0 001 1h3a1 1 0 001-1V6a1 1 0 00-1-1h-3zm-9 7a1 1 0 011-1h3a1 1 0 011 1v3a1 1 0 01-1 1H4a1 1 0 01-1-1v-3zm9 1a1 1 0 00-1 1v3a1 1 0 001 1h3a1 1 0 001-1v-3a1 1 0 00-1-1h-3z" clip-rule="evenodd" />
+                    </svg>
+                    Mon Carnet (Liste Complète)
+                </h2>
+                <div id="word-list-div" class="space-y-3">
+                    <p class="text-center py-4 text-gray-500">Chargement des mots...</p>
                 </div>
             </div>
         </div>
+        
+    </div>
 
-        <!-- Liste du Vocabulaire -->
-        <div class="card bg-white p-6 rounded-lg">
-            <h2 class="text-xl font-semibold text-gray-700 mb-4">Mon Vocabulaire (Taux d'Erreur)</h2>
-            <div id="wordList" class="space-y-3">
-                <p id="loading-message" class="text-gray-500 text-center">Chargement de votre carnet...</p>
+    <!-- Modal de Confirmation de Suppression (Utilisé à la place de window.confirm) -->
+    <div id="delete-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden justify-center items-center z-50">
+        <div class="bg-white p-6 rounded-lg shadow-xl max-w-sm w-full">
+            <h3 class="text-lg font-bold mb-4">Confirmer la Suppression</h3>
+            <p id="delete-modal-text" class="mb-4 text-gray-700"></p>
+            <div class="flex justify-end space-x-3">
+                <button id="cancel-delete-btn" class="bg-gray-200 text-gray-800 font-bold py-2 px-4 rounded-lg hover:bg-gray-300">Annuler</button>
+                <button id="confirm-delete-btn" class="bg-red-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-red-700">Supprimer</button>
             </div>
         </div>
     </div>
 
-    <!-- Firebase Imports et Logique -->
+
     <script type="module">
+        // Importations Firebase
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { 
-            getFirestore, doc, collection, query, onSnapshot, 
-            addDoc, updateDoc, deleteDoc, setLogLevel, getDocs 
-        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, doc, addDoc, setDoc, updateDoc, deleteDoc, onSnapshot, collection, query, orderBy, getDocs, limit, runTransaction, serverTimestamp, setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         
-        // --- Variables globales fournies par Canvas (MANDATORY USE) ---
+        // **********************************************
+        // GESTION DES VARIABLES GLOBALES FOURNIES PAR CANVAS
+        // **********************************************
+        // Ces variables sont injectées par l'environnement Canvas.
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
         const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+        let firebaseConfig = null;
         
-        // --- Variables de l'application ---
-        let db = null;
-        let auth = null;
+        // Tente de parser la configuration Firebase
+        if (typeof __firebase_config !== 'undefined' && __firebase_config) {
+            try {
+                firebaseConfig = JSON.parse(__firebase_config);
+            } catch (e) {
+                console.error("Erreur lors du parsing de __firebase_config:", e);
+                // Le message d'erreur sera affiché par la fonction initApp
+            }
+        } else {
+            // Si __firebase_config est undefined ou vide, firebaseConfig reste null
+            console.warn("La variable __firebase_config est manquante ou vide.");
+        }
+        
+        // **********************************************
+        // VARIABLES GLOBALES ET ÉLÉMENTS DU DOM
+        // **********************************************
+        let app, db, auth;
         let currentUserId = null;
-        let words = []; 
-        let quizWord = null;
+        let vocabularyData = [];
+        let isAuthReady = false;
+        let quizWords = [];
+        let currentQuizIndex = 0;
+        let currentQuizWord = null;
+        const QUIZ_SIZE = 5;
+
+        // Éléments du DOM
+        const authStatusP = document.getElementById('auth-status-p');
+        const authStatusIcon = document.getElementById('auth-status-icon');
+        const errorMessageBox = document.getElementById('error-message-box');
+        const errorMessageP = document.getElementById('error-message');
+        const addWordBtn = document.getElementById('add-word-btn');
+        const startQuizBtn = document.getElementById('start-quiz-btn');
+        const submitAnswerBtn = document.getElementById('submit-answer-btn');
+        const hintBtn = document.getElementById('hint-btn');
+        const restartQuizBtn = document.getElementById('restart-quiz-btn');
         
-        // --- Références DOM ---
-        const authStatusP = document.getElementById('auth-status');
-        const frenchWordInput = document.getElementById('frenchWord');
-        const translationInput = document.getElementById('translation');
-        const exampleInput = document.getElementById('example');
-        const addWordBtn = document.getElementById('addWordBtn');
-        const addWordText = document.getElementById('addWordText');
-        const addWordLoading = document.getElementById('addWordLoading');
-        const wordListDiv = document.getElementById('wordList');
-        const messageBox = document.getElementById('message-box');
-        const startQuizBtn = document.getElementById('startQuizBtn');
-        const quizMessageP = document.getElementById('quiz-message');
-        const quizQuestionDiv = document.getElementById('quiz-question');
-        const currentWordP = document.getElementById('current-word');
-        const quizAnswerInput = document.getElementById('quiz-answer');
-        const submitAnswerBtn = document.getElementById('submitAnswerBtn');
-        const feedbackP = document.getElementById('feedback');
-
-        // --- Fonctions utilitaires ---
-        function displayMessage(text, isError = false) {
-            messageBox.textContent = text;
-            messageBox.className = `mt-4 p-3 rounded-lg text-sm ${isError ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`;
-            messageBox.classList.remove('hidden');
-            setTimeout(() => messageBox.classList.add('hidden'), 3000);
-        }
-
-        function setAddButtonState(isLoading) {
-            addWordBtn.disabled = isLoading;
-            if (isLoading) {
-                addWordText.classList.add('hidden');
-                addWordLoading.classList.remove('hidden');
-            } else {
-                addWordText.classList.remove('hidden');
-                addWordLoading.classList.add('hidden');
-            }
-        }
-
-        // --- Rendu de l'interface utilisateur ---
-        function renderWordList() {
-            if (!words || words.length === 0) {
-                wordListDiv.innerHTML = '<p class="text-center py-4 text-gray-500">Votre carnet est vide. Ajoutez un premier mot !</p>';
-                startQuizBtn.disabled = true;
-                return;
-            }
-            startQuizBtn.disabled = false;
-            quizMessageP.textContent = "Cliquez sur \"Démarrer le Quiz\" pour commencer. Le quiz priorise les mots que vous ratez le plus.";
-
-
-            // Trier par taux d'erreur décroissant (les mots avec le plus d'erreurs en premier)
-            const sortedWords = [...words].sort((a, b) => {
-                const totalAttemptsA = (a.correctCount || 0) + (a.incorrectCount || 0);
-                const totalAttemptsB = (b.correctCount || 0) + (b.incorrectCount || 0);
-                const errorRateA = (a.incorrectCount || 0) / Math.max(1, totalAttemptsA);
-                const errorRateB = (b.incorrectCount || 0) / Math.max(1, totalAttemptsB);
-                return errorRateB - errorRateA;
-            });
-
-            let html = '';
-            sortedWords.forEach((word) => {
-                const totalAttempts = (word.correctCount || 0) + (word.incorrectCount || 0);
-                const errorRate = totalAttempts > 0 ? ((word.incorrectCount || 0) / totalAttempts * 100).toFixed(0) : 0;
-                const errorColor = errorRate > 50 ? 'bg-red-100 border-red-300' : errorRate > 0 ? 'bg-yellow-100 border-yellow-300' : 'bg-green-100 border-green-300';
-
-                html += `
-                    <div class="flex items-center p-3 border rounded-lg ${errorColor}">
-                        <div class="flex-grow">
-                            <p class="font-semibold text-gray-800">${word.frenchWord}</p>
-                            <p class="text-sm text-gray-600">${word.translation}</p>
-                            ${word.example ? `<p class="text-xs text-gray-500 italic truncate max-w-full">Ex: ${word.example}</p>` : ''}
-                        </div>
-                        <div class="text-right ml-4 w-20 flex-shrink-0">
-                            <span class="text-lg font-bold ${errorRate > 0 ? 'text-red-700' : 'text-green-700'}">${errorRate}%</span>
-                            <p class="text-xs text-gray-500">(${word.incorrectCount || 0} erreurs)</p>
-                        </div>
-                        <button data-id="${word.id}" class="delete-btn ml-4 text-red-500 hover:text-red-700 transition duration-150 flex-shrink-0" title="Supprimer le mot" aria-label="Supprimer le mot ${word.frenchWord}">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 100 2v6a1 1 0 100-2V8z" clip-rule="evenodd" />
-                            </svg>
-                        </button>
-                    </div>
-                `;
-            });
-
-            wordListDiv.innerHTML = html;
-            attachDeleteListeners();
-        }
-
-        // --- Logique Firestore ---
-
-        function getCollectionPath() {
-            // Chemin privé: /artifacts/{appId}/users/{userId}/vocabulary
-            if (!currentUserId) throw new Error("Utilisateur non authentifié.");
-            return `artifacts/${appId}/users/${currentUserId}/vocabulary`;
-        }
-
-        function setupRealtimeListener() {
-            if (!db || !currentUserId) return;
-
-            const path = getCollectionPath();
-            const q = collection(db, path);
-
-            // onSnapshot écoute les changements en temps réel
-            onSnapshot(q, (querySnapshot) => {
-                words = [];
-                querySnapshot.forEach((doc) => {
-                    // S'assurer que les compteurs sont des nombres, même s'ils sont manquants
-                    const data = doc.data();
-                    words.push({
-                        id: doc.id,
-                        frenchWord: data.frenchWord || '',
-                        translation: data.translation || '',
-                        example: data.example || '',
-                        correctCount: data.correctCount || 0,
-                        incorrectCount: data.incorrectCount || 0,
-                    });
-                });
-                console.log(`Chargement réussi : ${words.length} mots.`);
-                document.getElementById('loading-message').textContent = "";
-                renderWordList();
-            }, (error) => {
-                console.error("Erreur lors de l'écoute Firestore: ", error);
-                document.getElementById('loading-message').textContent = "Erreur de chargement des données. Vérifiez l'authentification et les règles de sécurité Firebase.";
-            });
-        }
-
-        async function addWordToFirestore(frenchWord, translation, example) {
-            if (!currentUserId) return displayMessage("Erreur : Non connecté. Impossible d'ajouter le mot.", true);
-            setAddButtonState(true);
-            
-            if (!frenchWord || !translation) {
-                setAddButtonState(false);
-                return displayMessage("Veuillez remplir le mot français et la traduction.", true);
-            }
-
-            try {
-                const path = getCollectionPath();
-                await addDoc(collection(db, path), {
-                    frenchWord: frenchWord.trim(),
-                    translation: translation.trim(),
-                    example: example.trim(),
-                    correctCount: 0,
-                    incorrectCount: 0,
-                    createdAt: new Date().toISOString()
-                });
-                
-                displayMessage("Mot ajouté avec succès !");
-                frenchWordInput.value = '';
-                translationInput.value = '';
-                exampleInput.value = '';
-
-            } catch (e) {
-                console.error("Erreur lors de l'ajout du mot: ", e);
-                displayMessage("Erreur serveur lors de l'ajout.", true);
-            } finally {
-                setAddButtonState(false);
-            }
-        }
+        const frenchWordInput = document.getElementById('french-word-input');
+        const translationInput = document.getElementById('translation-input');
+        const exampleInput = document.getElementById('example-input');
         
-        async function updateWordCountsInFirestore(wordId, isCorrect) {
-            if (!currentUserId) return;
-            
-            try {
-                const wordRef = doc(db, getCollectionPath(), wordId);
-                const word = words.find(w => w.id === wordId);
-
-                if (!word) {
-                    console.error("Mot non trouvé pour la mise à jour.");
-                    return;
-                }
-                
-                const updateData = {};
-                if (isCorrect) {
-                    updateData.correctCount = (word.correctCount || 0) + 1;
-                } else {
-                    updateData.incorrectCount = (word.incorrectCount || 0) + 1;
-                }
-                
-                await updateDoc(wordRef, updateData);
-                
-            } catch (e) {
-                console.error("Erreur lors de la mise à jour des compteurs: ", e);
-            }
-        }
+        const wordListDiv = document.getElementById('word-list-div');
         
-        async function deleteWordFromFirestore(wordId) {
-            if (!currentUserId) return;
-            try {
-                await deleteDoc(doc(db, getCollectionPath(), wordId));
-                displayMessage("Mot supprimé avec succès.");
-            } catch (e) {
-                console.error("Erreur lors de la suppression du mot: ", e);
-                displayMessage("Erreur serveur lors de la suppression.", true);
-            }
-        }
+        const quizInitialState = document.getElementById('quiz-initial-state');
+        const quizActiveState = document.getElementById('quiz-active-state');
+        const quizResultsState = document.getElementById('quiz-results-state');
+        const quizNoWordsState = document.getElementById('quiz-no-words-state');
+        
+        const quizWordP = document.getElementById('quiz-word');
+        const quizAnswerInput = document.getElementById('quiz-answer-input');
+        const quizFeedbackDiv = document.getElementById('quiz-feedback');
+        const quizProgressP = document.getElementById('quiz-progress');
+        const quizHintP = document.getElementById('quiz-hint');
+        const resultsSummaryP = document.getElementById('results-summary');
 
-        function attachDeleteListeners() {
-            document.querySelectorAll('.delete-btn').forEach(button => {
-                button.onclick = (e) => {
-                    const wordId = e.currentTarget.getAttribute('data-id');
-                    if (wordId && currentUserId) {
-                        deleteWordFromFirestore(wordId);
-                    } else if (!currentUserId) {
-                        displayMessage("Veuillez vous authentifier pour effectuer des actions.", true);
-                    }
-                };
-            });
-        }
+        const deleteModal = document.getElementById('delete-modal');
+        const confirmDeleteBtn = document.getElementById('confirm-delete-btn');
+        const cancelDeleteBtn = document.getElementById('cancel-delete-btn');
+        let wordToDeleteId = null;
 
-        // --- Logique du Quiz ---
-        function startQuiz() {
-            if (words.length === 0 || startQuizBtn.disabled) return;
-
-            // Trier par taux d'erreur décroissant (le plus d'erreurs en premier)
-            const sortedForQuiz = [...words].sort((a, b) => {
-                const totalAttemptsA = (a.correctCount || 0) + (a.incorrectCount || 0);
-                const totalAttemptsB = (b.correctCount || 0) + (b.incorrectCount || 0);
-                const errorRateA = (a.incorrectCount || 0) / Math.max(1, totalAttemptsA);
-                const errorRateB = (b.incorrectCount || 0) / Math.max(1, totalAttemptsB);
-                return errorRateB - errorRateA;
-            });
+        /**
+         * Affiche un message d'erreur critique et désactive l'application.
+         * @param {string} message - Le message d'erreur à afficher.
+         */
+        function showCriticalError(message) {
+            console.error("ERREUR CRITIQUE:", message);
+            authStatusP.textContent = "Erreur: Non connecté.";
+            authStatusIcon.classList.remove('bg-yellow-400', 'bg-green-600');
+            authStatusIcon.classList.add('bg-red-600');
+            errorMessageP.textContent = message;
+            errorMessageBox.classList.remove('hidden');
             
-            // Choisir le mot avec le taux d'erreur le plus élevé
-            quizWord = sortedForQuiz[0];
-
-            if (!quizWord) {
-                quizMessageP.textContent = "Erreur: Impossible de sélectionner un mot pour le quiz.";
-                return;
-            }
-
-            quizMessageP.classList.add('hidden');
-            quizQuestionDiv.classList.remove('hidden');
-            currentWordP.textContent = quizWord.frenchWord;
-            quizAnswerInput.value = '';
-            feedbackP.textContent = '';
-            submitAnswerBtn.textContent = 'Vérifier';
-            submitAnswerBtn.classList.remove('bg-green-500', 'bg-red-500');
-            submitAnswerBtn.classList.add('bg-gray-500');
-            
-            quizAnswerInput.focus();
+            // Désactiver toutes les fonctionnalités interactives
+            addWordBtn.disabled = true;
+            startQuizBtn.disabled = true;
+            addWordBtn.textContent = "Ajouter (Désactivé)";
+            startQuizBtn.textContent = "Quiz (Désactivé)";
+            wordListDiv.innerHTML = `<p class="text-center py-4 text-red-500 font-bold">Impossible de charger la liste. ${message}</p>`;
         }
 
-        function checkAnswer() {
-            if (!quizWord) return;
-
-            const userAnswer = quizAnswerInput.value.trim().toLowerCase();
-            const correctTranslation = quizWord.translation.trim().toLowerCase();
-            const isSubmit = submitAnswerBtn.textContent === 'Vérifier';
-
-            if (isSubmit) {
-                const isCorrect = userAnswer === correctTranslation;
-                
-                // Mettre à jour Firestore
-                updateWordCountsInFirestore(quizWord.id, isCorrect);
-
-                if (isCorrect) {
-                    feedbackP.textContent = "Correct ! 🎉";
-                    feedbackP.className = 'mt-2 font-semibold text-green-700';
-                    submitAnswerBtn.classList.remove('bg-gray-500');
-                    submitAnswerBtn.classList.add('bg-green-500');
-                } else {
-                    feedbackP.textContent = `Faux. La réponse correcte était : ${quizWord.translation} ${quizWord.example ? `(Ex: ${quizWord.example})` : ''}`;
-                    feedbackP.className = 'mt-2 font-semibold text-red-700';
-                    submitAnswerBtn.classList.remove('bg-gray-500');
-                    submitAnswerBtn.classList.add('bg-red-500');
-                }
-                
-                submitAnswerBtn.textContent = 'Mot Suivant';
-                
-            } else {
-                submitAnswerBtn.textContent = 'Vérifier';
-                submitAnswerBtn.classList.remove('bg-green-500', 'bg-red-500');
-                submitAnswerBtn.classList.add('bg-gray-500');
-                startQuiz(); // Passer au mot suivant
-            }
-        }
-
-        // --- Initialisation de l'application ---
-
+        /**
+         * Tente d'initialiser Firebase, l'authentification et le listener de données.
+         */
         async function initApp() {
-            // Afficher le statut initial
-            authStatusP.textContent = "Initialisation de Firebase...";
-            setLogLevel('debug'); // Pour le débogage
-
-            // 1. Initialiser Firebase
-            if (!firebaseConfig || Object.keys(firebaseConfig).length === 0) {
-                 authStatusP.textContent = "Erreur: Configuration Firebase manquante. L'application ne peut pas se connecter.";
-                 return;
+            // 1. Vérification de la configuration Firebase
+            if (!firebaseConfig) {
+                showCriticalError("Configuration Firebase manquante ou non parsable. L'application ne peut pas se connecter. Assurez-vous d'utiliser cette application dans l'environnement Canvas.");
+                return;
             }
 
+            // 2. Initialisation Firebase
             try {
-                const app = initializeApp(firebaseConfig);
+                // setLogLevel('debug'); // Décommenter pour le debug
+                app = initializeApp(firebaseConfig);
                 db = getFirestore(app);
                 auth = getAuth(app);
-                
-                // 2. Tenter l'authentification
-                if (initialAuthToken) {
-                    await signInWithCustomToken(auth, initialAuthToken);
-                } else {
-                    await signInAnonymously(auth);
-                }
-                
+                authStatusP.textContent = "Connexion en cours...";
+                authStatusIcon.classList.add('bg-yellow-400');
+                errorMessageBox.classList.add('hidden'); // Cacher la boîte d'erreur si la config est bonne
             } catch (e) {
-                console.error("Erreur critique lors de l'initialisation Firebase/Auth:", e);
-                authStatusP.textContent = "Erreur: Échec de l'authentification Firebase. Les données ne seront pas sauvegardées.";
+                showCriticalError(`Erreur d'initialisation Firebase : ${e.message}`);
                 return;
             }
 
-            // 3. Écouter les changements d'état d'authentification
+            // 3. Authentification
+            // La logique d'authentification est déplacée dans onAuthStateChanged pour gérer le cycle de vie complet.
+            // Tentons d'abord l'authentification initiale.
+            try {
+                if (initialAuthToken) {
+                    await signInWithCustomToken(auth, initialAuthToken);
+                    console.log("Connexion réussie avec le jeton personnalisé.");
+                } else {
+                    await signInAnonymously(auth);
+                    console.warn("Jeton personnalisé manquant. Connexion anonyme réussie.");
+                }
+            } catch (e) {
+                // Tenter une connexion anonyme si le jeton personnalisé échoue
+                console.error("Échec de la connexion par jeton. Tentative de connexion anonyme.", e);
+                try {
+                    await signInAnonymously(auth);
+                    console.warn("Connexion anonyme réussie après échec du jeton.");
+                } catch (anonError) {
+                    showCriticalError(`Échec de l'authentification : ${e.message} (Tentative anonyme échouée : ${anonError.message})`);
+                    return;
+                }
+            }
+
+            // 4. Gestion de l'état d'authentification
             onAuthStateChanged(auth, (user) => {
+                isAuthReady = true;
                 if (user) {
                     currentUserId = user.uid;
-                    authStatusP.textContent = `Connecté (ID utilisateur: ${user.uid}). Les données sont sauvegardées.`;
+                    authStatusP.textContent = `Connecté (ID: ${user.uid}).`;
+                    authStatusIcon.classList.remove('bg-yellow-400', 'bg-red-600');
+                    authStatusIcon.classList.add('bg-green-600');
                     addWordBtn.disabled = false;
-                    setupRealtimeListener(); // Démarrer l'écoute Firestore
+                    addWordBtn.textContent = "Ajouter au Carnet";
+                    setupRealtimeListener();
                 } else {
                     currentUserId = null;
-                    authStatusP.textContent = "Non connecté. Les données ne seront pas enregistrées. Les mots ne peuvent être ajoutés.";
-                    wordListDiv.innerHTML = '<p class="text-center py-4 text-gray-500">Veuillez vous authentifier pour voir votre carnet.</p>';
+                    authStatusP.textContent = "Non connecté. Les données ne seront pas enregistrées.";
+                    authStatusIcon.classList.remove('bg-yellow-400', 'bg-green-600');
+                    authStatusIcon.classList.add('bg-red-600');
                     addWordBtn.disabled = true;
+                    addWordBtn.textContent = "Ajouter (Connexion requise)";
+                    // Nettoyer la liste si l'utilisateur se déconnecte
+                    wordListDiv.innerHTML = '<p class="text-center py-4 text-gray-500">Veuillez vous connecter pour voir votre carnet.</p>';
+                    startQuizBtn.disabled = true;
                 }
             });
 
-            // 4. Événements
+            // 5. Événements d'application
             addWordBtn.addEventListener('click', () => {
                 addWordToFirestore(frenchWordInput.value, translationInput.value, exampleInput.value);
             });
             
             startQuizBtn.addEventListener('click', startQuiz);
             submitAnswerBtn.addEventListener('click', checkAnswer);
+            restartQuizBtn.addEventListener('click', startQuiz);
 
             // Permettre d'appuyer sur Entrée pour soumettre la réponse du quiz
             quizAnswerInput.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter') {
                     e.preventDefault();
-                    checkAnswer();
+                    if (quizActiveState.classList.contains('hidden') === false) {
+                        checkAnswer();
+                    }
+                }
+            });
+
+            hintBtn.addEventListener('click', showHint);
+            cancelDeleteBtn.addEventListener('click', hideDeleteModal);
+            confirmDeleteBtn.addEventListener('click', () => {
+                if (wordToDeleteId) {
+                    deleteWordFromFirestore(wordToDeleteId);
+                    hideDeleteModal();
                 }
             });
         }
+        
+        // **********************************************
+        // FONCTIONS FIREBASE
+        // **********************************************
+        
+        /**
+         * Retourne la référence à la collection de vocabulaire de l'utilisateur.
+         * @returns {import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js").CollectionReference}
+         */
+        function getVocabularyCollectionRef() {
+            if (!currentUserId) {
+                console.error("Tentative d'accès à Firestore sans ID utilisateur.");
+                return null;
+            }
+            // Chemin de données PRIVÉ: /artifacts/{appId}/users/{userId}/vocabulary
+            return collection(db, `artifacts/${appId}/users/${currentUserId}/vocabulary`);
+        }
 
+        /**
+         * Établit un listener en temps réel pour la liste de vocabulaire.
+         */
+        function setupRealtimeListener() {
+            const vocabColRef = getVocabularyCollectionRef();
+            if (!vocabColRef) return;
+
+            // La requête trie par timestamp de création pour afficher les nouveaux mots en premier
+            const q = query(vocabColRef, orderBy('createdAt', 'desc'));
+
+            onSnapshot(q, (snapshot) => {
+                vocabularyData = snapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                }));
+                
+                // Mettre à jour l'interface utilisateur
+                renderVocabularyList(vocabularyData);
+                // Mettre à jour l'état du bouton Quiz
+                updateQuizButtonState();
+            }, (error) => {
+                console.error("Erreur de récupération des données:", error);
+                wordListDiv.innerHTML = `<p class="text-center py-4 text-red-500">Erreur de chargement: ${error.message}</p>`;
+                updateQuizButtonState(true); // Désactiver le quiz en cas d'erreur
+            });
+        }
+        
+        /**
+         * Ajoute ou met à jour un mot dans Firestore.
+         * @param {string} frenchWord Le mot en français.
+         * @param {string} translation La traduction.
+         * @param {string} example La phrase d'exemple.
+         */
+        async function addWordToFirestore(frenchWord, translation, example) {
+            const vocabColRef = getVocabularyCollectionRef();
+            if (!vocabColRef) return;
+            
+            const french = frenchWord.trim();
+            const trans = translation.trim();
+            const ex = example.trim();
+
+            if (!french || !trans) {
+                alertUser("Veuillez saisir le mot et sa traduction.", "error", frenchWordInput);
+                return;
+            }
+
+            try {
+                // Normaliser le mot français pour une recherche et éviter les doublons (avec un index manuel)
+                const normalizedFrenchWord = french.toLowerCase();
+
+                // Créer le nouveau mot
+                const newWord = {
+                    french: french,
+                    translation: trans,
+                    example: ex,
+                    normalized: normalizedFrenchWord,
+                    errorCount: 0,
+                    successCount: 0,
+                    lastReviewed: serverTimestamp(),
+                    createdAt: serverTimestamp()
+                };
+
+                await addDoc(vocabColRef, newWord);
+
+                alertUser("Mot ajouté avec succès !", "success");
+                // Réinitialiser les champs
+                frenchWordInput.value = '';
+                translationInput.value = '';
+                exampleInput.value = '';
+
+            } catch (e) {
+                alertUser(`Erreur lors de l'ajout: ${e.message}`, "error");
+                console.error("Erreur lors de l'ajout du mot: ", e);
+            }
+        }
+        
+        /**
+         * Supprime un mot de Firestore.
+         * @param {string} docId L'ID du document à supprimer.
+         */
+        async function deleteWordFromFirestore(docId) {
+            const vocabColRef = getVocabularyCollectionRef();
+            if (!vocabColRef) return;
+            
+            try {
+                await deleteDoc(doc(vocabColRef, docId));
+                alertUser("Mot supprimé.", "success");
+            } catch (e) {
+                alertUser(`Erreur lors de la suppression: ${e.message}`, "error");
+                console.error("Erreur lors de la suppression du mot: ", e);
+            }
+        }
+
+        /**
+         * Met à jour les statistiques de réussite/erreur après un quiz.
+         * @param {string} docId L'ID du mot.
+         * @param {boolean} success Vrai si la réponse était correcte.
+         */
+        async function updateWordStats(docId, success) {
+            const vocabColRef = getVocabularyCollectionRef();
+            if (!vocabColRef) return;
+
+            const wordRef = doc(vocabColRef, docId);
+
+            try {
+                await runTransaction(db, async (transaction) => {
+                    const wordDoc = await transaction.get(wordRef);
+                    if (!wordDoc.exists()) {
+                        throw "Le mot n'existe plus !";
+                    }
+
+                    const data = wordDoc.data();
+                    let updates = {
+                        lastReviewed: serverTimestamp()
+                    };
+
+                    if (success) {
+                        updates.successCount = (data.successCount || 0) + 1;
+                    } else {
+                        updates.errorCount = (data.errorCount || 0) + 1;
+                    }
+
+                    transaction.update(wordRef, updates);
+                });
+                // console.log("Transaction réussie pour les statistiques.");
+            } catch (e) {
+                console.error("Échec de la transaction des statistiques: ", e);
+            }
+        }
+
+        // **********************************************
+        // LOGIQUE D'AFFICHAGE ET D'INTERFACE UTILISATEUR
+        // **********************************************
+
+        /**
+         * Affiche des messages utilisateur (simule alert/confirm dans l'UI).
+         * NOTE: J'utilise une simple coloration/mise en évidence ici au lieu d'une modale
+         * pour rester simple, sauf pour la suppression.
+         * @param {string} message Le message à afficher.
+         * @param {'success'|'error'} type Le type de message.
+         * @param {HTMLElement} [elementToHighlight] L'élément à mettre en évidence.
+         */
+        function alertUser(message, type, elementToHighlight = null) {
+            console.log(`ALERTE (${type}): ${message}`);
+            
+            if (elementToHighlight) {
+                elementToHighlight.classList.add('input-error');
+                setTimeout(() => elementToHighlight.classList.remove('input-error'), 3000);
+            }
+
+            // Pour l'ajout, on peut temporairement changer le texte du bouton d'ajout
+            if (type === 'success' && message.includes("Mot ajouté")) {
+                const originalText = addWordBtn.textContent;
+                addWordBtn.textContent = "✅ " + message;
+                setTimeout(() => addWordBtn.textContent = originalText, 2000);
+            }
+        }
+
+        /**
+         * Affiche la modale de confirmation de suppression.
+         * @param {string} id L'ID du document à supprimer.
+         * @param {string} word Le mot concerné.
+         */
+        function showDeleteModal(id, word) {
+            wordToDeleteId = id;
+            document.getElementById('delete-modal-text').textContent = `Êtes-vous sûr de vouloir supprimer le mot "${word}" de votre carnet ? Cette action est irréversible.`;
+            deleteModal.classList.remove('hidden', 'opacity-0');
+            deleteModal.classList.add('flex', 'opacity-100');
+        }
+
+        /**
+         * Cache la modale de confirmation de suppression.
+         */
+        function hideDeleteModal() {
+            wordToDeleteId = null;
+            deleteModal.classList.remove('flex', 'opacity-100');
+            deleteModal.classList.add('hidden', 'opacity-0');
+        }
+
+        /**
+         * Rend la liste des mots dans l'interface utilisateur.
+         * @param {Array<Object>} words L'array de mots à afficher.
+         */
+        function renderVocabularyList(words) {
+            if (words.length === 0) {
+                wordListDiv.innerHTML = '<p class="text-center py-4 text-gray-500">Votre carnet de vocabulaire est vide. Ajoutez votre premier mot !</p>';
+                return;
+            }
+
+            wordListDiv.innerHTML = ''; // Nettoyer l'ancienne liste
+
+            words.forEach(word => {
+                const totalAttempts = (word.errorCount || 0) + (word.successCount || 0);
+                const errorRate = totalAttempts > 0 ? ((word.errorCount / totalAttempts) * 100).toFixed(0) : 0;
+                
+                // Déterminer la couleur de la barre de progression
+                let colorClass;
+                if (errorRate >= 75) colorClass = 'bg-red-500';
+                else if (errorRate >= 50) colorClass = 'bg-orange-500';
+                else if (errorRate >= 25) colorClass = 'bg-yellow-500';
+                else colorClass = 'bg-green-500';
+
+                const wordCard = document.createElement('div');
+                wordCard.className = 'p-4 border border-gray-200 rounded-lg shadow-sm bg-white hover:bg-gray-50';
+                wordCard.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <!-- Contenu du mot -->
+                        <div>
+                            <p class="text-lg font-bold text-gray-900">${word.french}</p>
+                            <p class="text-sm text-blue-600 italic">${word.translation}</p>
+                            <p class="text-xs text-gray-500 mt-1">${word.example || "Pas d'exemple fourni."}</p>
+                        </div>
+                        <!-- Bouton de suppression -->
+                        <button class="delete-btn text-red-400 hover:text-red-600 ml-4 p-1 rounded-full hover:bg-red-50" data-id="${word.id}" data-word="${word.french}">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 10-2 0v6a1 1 0 102 0V8z" clip-rule="evenodd" />
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    <!-- Statistiques et Barre de Progrès -->
+                    <div class="mt-3">
+                        <p class="text-xs text-gray-700 font-medium">Taux d'Erreur: <span class="font-bold">${errorRate}%</span> (Erreurs: ${word.errorCount || 0} / Total: ${totalAttempts})</p>
+                        <div class="w-full bg-gray-200 rounded-full h-1.5 mt-1">
+                            <div class="h-1.5 rounded-full" style="width: ${errorRate}%; background-color: ${errorRate > 0 ? colorClass : 'transparent'};"></div>
+                        </div>
+                    </div>
+                `;
+                wordListDiv.appendChild(wordCard);
+            });
+
+            // Attacher les écouteurs pour les boutons de suppression
+            document.querySelectorAll('.delete-btn').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const id = e.currentTarget.getAttribute('data-id');
+                    const word = e.currentTarget.getAttribute('data-word');
+                    showDeleteModal(id, word);
+                });
+            });
+        }
+
+        /**
+         * Met à jour l'état du bouton Quiz (désactivé s'il n'y a pas assez de mots).
+         * @param {boolean} [forceDisable=false] Force la désactivation en cas d'erreur Firestore.
+         */
+        function updateQuizButtonState(forceDisable = false) {
+            if (forceDisable || vocabularyData.length < QUIZ_SIZE) {
+                startQuizBtn.disabled = true;
+                startQuizBtn.textContent = `Commencer le Quiz (${QUIZ_SIZE} mots requis)`;
+            } else {
+                startQuizBtn.disabled = false;
+                startQuizBtn.textContent = `Commencer le Quiz (${QUIZ_SIZE} mots)`;
+            }
+        }
+        
+        // **********************************************
+        // LOGIQUE DU QUIZ
+        // **********************************************
+
+        /**
+         * Commence un nouveau quiz en sélectionnant les mots les plus problématiques.
+         */
+        function startQuiz() {
+            if (vocabularyData.length < QUIZ_SIZE) {
+                quizInitialState.classList.add('hidden');
+                quizActiveState.classList.add('hidden');
+                quizResultsState.classList.add('hidden');
+                quizNoWordsState.classList.remove('hidden');
+                return;
+            }
+
+            // 1. Calculer un score de difficulté (plus le taux d'erreur est haut, plus le score est haut)
+            const wordsWithScore = vocabularyData.map(word => {
+                const total = (word.errorCount || 0) + (word.successCount || 0);
+                const errorRate = total > 0 ? word.errorCount / total : 1; // Les nouveaux mots ont un taux de 1 (max)
+                // Score = Taux d'erreur * (1 + tentatives)
+                word.difficultyScore = errorRate * (1 + total);
+                return word;
+            });
+            
+            // 2. Trier par score de difficulté (descendant)
+            wordsWithScore.sort((a, b) => b.difficultyScore - a.difficultyScore);
+
+            // 3. Sélectionner les mots pour le quiz
+            quizWords = wordsWithScore.slice(0, QUIZ_SIZE).map(word => ({
+                id: word.id,
+                french: word.french,
+                translation: word.translation,
+                example: word.example,
+                correct: 0,
+                wrong: 0
+            }));
+
+            currentQuizIndex = 0;
+            
+            // 4. Initialisation de l'UI du quiz
+            quizInitialState.classList.add('hidden');
+            quizResultsState.classList.add('hidden');
+            quizNoWordsState.classList.add('hidden');
+            quizActiveState.classList.remove('hidden');
+            quizFeedbackDiv.classList.add('hidden');
+            
+            loadNextQuestion();
+        }
+
+        /**
+         * Charge la prochaine question du quiz.
+         */
+        function loadNextQuestion() {
+            if (currentQuizIndex >= QUIZ_SIZE) {
+                showQuizResults();
+                return;
+            }
+
+            currentQuizWord = quizWords[currentQuizIndex];
+            
+            quizProgressP.textContent = `Question ${currentQuizIndex + 1} / ${QUIZ_SIZE}`;
+            quizWordP.textContent = currentQuizWord.translation; // On donne la traduction, l'utilisateur doit donner le mot français
+            
+            quizAnswerInput.value = '';
+            quizAnswerInput.focus();
+            quizFeedbackDiv.classList.add('hidden');
+            quizHintP.classList.add('hidden');
+            hintBtn.disabled = false;
+        }
+
+        /**
+         * Affiche l'indice (la phrase d'exemple)
+         */
+        function showHint() {
+            quizHintP.textContent = `Indice: "${currentQuizWord.example}"`;
+            quizHintP.classList.remove('hidden');
+            hintBtn.disabled = true; // Un seul indice par question
+        }
+
+        /**
+         * Vérifie la réponse de l'utilisateur.
+         */
+        async function checkAnswer() {
+            const userAnswer = quizAnswerInput.value.trim().toLowerCase();
+            const correctAnswer = currentQuizWord.french.toLowerCase();
+            const isCorrect = userAnswer === correctAnswer;
+            
+            quizAnswerInput.disabled = true;
+            submitAnswerBtn.disabled = true;
+
+            quizFeedbackDiv.classList.remove('hidden');
+            quizFeedbackDiv.classList.remove('bg-red-200', 'bg-green-200');
+            quizFeedbackDiv.classList.remove('text-red-800', 'text-green-800');
+
+            if (isCorrect) {
+                quizFeedbackDiv.textContent = `✅ Correct ! Le mot était bien : ${currentQuizWord.french}.`;
+                quizFeedbackDiv.classList.add('bg-green-200', 'text-green-800');
+                quizWords[currentQuizIndex].correct = 1;
+            } else {
+                quizFeedbackDiv.textContent = `❌ Faux. La réponse correcte était : ${currentQuizWord.french}.`;
+                quizFeedbackDiv.classList.add('bg-red-200', 'text-red-800');
+                quizWords[currentQuizIndex].wrong = 1;
+            }
+            
+            // Mettre à jour les statistiques dans Firestore
+            await updateWordStats(currentQuizWord.id, isCorrect);
+
+            // Avancer à la question suivante après un court délai
+            setTimeout(() => {
+                currentQuizIndex++;
+                quizAnswerInput.disabled = false;
+                submitAnswerBtn.disabled = false;
+                loadNextQuestion();
+            }, 2000);
+        }
+
+        /**
+         * Affiche les résultats finaux du quiz.
+         */
+        function showQuizResults() {
+            quizActiveState.classList.add('hidden');
+            quizResultsState.classList.remove('hidden');
+
+            const totalCorrect = quizWords.filter(w => w.correct === 1).length;
+            const totalQuestions = QUIZ_SIZE;
+            const percentage = ((totalCorrect / totalQuestions) * 100).toFixed(0);
+
+            resultsSummaryP.innerHTML = `
+                Vous avez obtenu <strong>${totalCorrect} / ${totalQuestions}</strong> bonnes réponses, soit un taux de <strong>${percentage}%</strong>.
+                <br>Continuez à réviser les mots surlignés en rouge !
+            `;
+        }
+
+        // **********************************************
+        // INITIALISATION
+        // **********************************************
         initApp();
-
     </script>
 </body>
 </html>
