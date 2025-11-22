@@ -3,13 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Carnet de Vocabulaire B1 Intelligent</title>
-    <!-- Chargement de Tailwind CSS pour un style moderne et mobile-first -->
+    <title>Carnet de Vocabulaire B1 - Version Améliorée</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Configuration de la police Inter -->
     <style>
         body {
-            font-family: 'Inter', sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
             background-color: #f7f7f7;
         }
         .card {
@@ -21,46 +19,139 @@
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.05);
         }
         .btn-primary {
-            background-color: #006497; /* MoodleBlue */
+            background-color: #006497;
             transition: background-color 0.2s;
         }
-        .btn-primary:hover {
+        .btn-primary:hover:not(:disabled) {
             background-color: #004f77;
         }
-        /* Style pour les erreurs des champs de formulaire */
+        .btn-secondary {
+            background-color: #6b7280;
+            transition: background-color 0.2s;
+        }
+        .btn-secondary:hover:not(:disabled) {
+            background-color: #4b5563;
+        }
         .input-error {
             border-color: #ef4444;
+            animation: shake 0.3s;
         }
-        /* Assure que la zone d'alerte d'erreur est bien visible */
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
         #error-message-box {
             background-color: #fee2e2;
             color: #ef4444;
             border: 1px solid #fca5a5;
         }
-        /* Fixe la taille de la zone du quiz pour éviter les CLS */
         #quiz-section {
             min-height: 250px;
+        }
+        .modal {
+            backdrop-filter: blur(4px);
         }
     </style>
 </head>
 <body class="p-4 sm:p-6 md:p-8">
-    <div class="max-w-4xl mx-auto">
-        <h1 class="text-3xl font-extrabold text-gray-900 mb-6 border-b pb-2">🧠 Carnet de Vocabulaire B1</h1>
+    <div class="max-w-6xl mx-auto">
+        <!-- En-tête -->
+        <div class="mb-6">
+            <h1 class="text-3xl font-extrabold text-gray-900 mb-2 border-b pb-2">
+                🧠 Carnet de Vocabulaire B1 - Version Améliorée
+            </h1>
+            <p class="text-sm text-gray-600">
+                Système intelligent de mémorisation avec révision espacée
+            </p>
+        </div>
         
-        <!-- Section Statut de Connexion et Message d'Erreur -->
+        <!-- Statut de connexion et erreurs -->
         <div id="status-and-error" class="mb-6 space-y-3">
-            <div id="auth-status" class="flex items-center p-3 rounded-lg text-sm font-medium">
+            <div id="auth-status" class="flex items-center p-3 rounded-lg text-sm font-medium bg-gray-100">
                 <div id="auth-status-icon" class="w-4 h-4 rounded-full mr-2 bg-yellow-400"></div>
                 <p id="auth-status-p" class="text-gray-700">Initialisation de la connexion...</p>
             </div>
-            <!-- Zone pour afficher les erreurs de configuration (visible si erreur) -->
             <div id="error-message-box" class="hidden p-4 rounded-lg">
                 <p class="font-bold">Erreur de Configuration!</p>
                 <p id="error-message"></p>
             </div>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Tableau de bord statistiques -->
+        <div id="stats-dashboard" class="mb-6"></div>
+
+        <!-- Contrôles: Recherche, Filtres, Export/Import -->
+        <div class="card bg-white p-4 rounded-xl mb-6">
+            <div class="space-y-3">
+                <!-- Recherche -->
+                <div class="relative">
+                    <input 
+                        type="search" 
+                        id="search-input" 
+                        placeholder="🔍 Rechercher un mot, traduction ou exemple..."
+                        class="w-full p-3 pl-10 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                    >
+                    <svg class="absolute left-3 top-3.5 h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                </div>
+                
+                <!-- Filtres et Tri -->
+                <div class="flex flex-wrap gap-2">
+                    <select id="category-filter" class="p-2 border border-gray-300 rounded-lg flex-1 min-w-[200px]">
+                        <option value="all">Toutes les semaines</option>
+                        <option value="0">Sans catégorie</option>
+                        <option value="1">📖 Semaine 1 - Se présenter</option>
+                        <option value="2">🏠 Semaine 2 - Vie quotidienne</option>
+                        <option value="3">✈️ Semaine 3 - Voyages</option>
+                        <option value="4">🍽️ Semaine 4 - Alimentation</option>
+                        <option value="5">💼 Semaine 5 - Travail</option>
+                        <option value="6">📰 Semaine 6 - Médias</option>
+                        <option value="7">🌍 Semaine 7 - Environnement</option>
+                        <option value="8">🎨 Semaine 8 - Culture</option>
+                        <option value="9">👥 Semaine 9 - Relations</option>
+                        <option value="10">📝 Semaine 10 - Révision</option>
+                    </select>
+                    
+                    <select id="filter-select" class="p-2 border border-gray-300 rounded-lg flex-1 min-w-[200px]">
+                        <option value="all">Tous les mots</option>
+                        <option value="new">🆕 Nouveaux (jamais révisés)</option>
+                        <option value="difficult">⚠️ Difficiles (&gt;50% erreur)</option>
+                        <option value="mastered">✅ Maîtrisés (&gt;80% réussite)</option>
+                    </select>
+                    
+                    <select id="sort-select" class="p-2 border border-gray-300 rounded-lg flex-1 min-w-[180px]">
+                        <option value="date-desc">Tri: Plus récents</option>
+                        <option value="date-asc">Tri: Plus anciens</option>
+                        <option value="alpha">Tri: Alphabétique</option>
+                        <option value="error-rate">Tri: Plus difficiles</option>
+                    </select>
+                    
+                    <button id="reset-filters-btn" class="p-2 bg-gray-200 rounded-lg hover:bg-gray-300 px-4">
+                        🔄 Réinitialiser
+                    </button>
+                </div>
+
+                <!-- Boutons Export/Import -->
+                <div class="flex flex-wrap gap-2 pt-2 border-t">
+                    <button id="export-json-btn" class="btn-secondary text-white py-2 px-4 rounded-lg text-sm font-medium disabled:opacity-50">
+                        📥 Exporter JSON
+                    </button>
+                    <button id="export-csv-btn" class="btn-secondary text-white py-2 px-4 rounded-lg text-sm font-medium disabled:opacity-50">
+                        📊 Exporter CSV
+                    </button>
+                    <label class="btn-secondary text-white py-2 px-4 rounded-lg text-sm font-medium cursor-pointer disabled:opacity-50">
+                        📤 Importer JSON
+                        <input type="file" id="import-json-input" accept=".json" class="hidden">
+                    </label>
+                </div>
+
+                <p id="result-count" class="text-sm text-gray-600 pt-2"></p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             
             <!-- Colonne 1: Ajouter un mot -->
             <div class="lg:col-span-1 card bg-white p-6 rounded-xl">
@@ -71,10 +162,32 @@
                     Ajouter un Mot
                 </h2>
                 <div class="space-y-3">
-                    <input type="text" id="french-word-input" placeholder="Mot en Français" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" maxlength="50">
-                    <input type="text" id="translation-input" placeholder="Traduction / Définition" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" maxlength="100">
-                    <textarea type="text" id="example-input" placeholder="Phrase d'exemple (pour le contexte)" rows="2" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"></textarea>
-                    <button id="add-word-btn" class="w-full btn-primary text-white font-bold py-2 px-4 rounded-lg shadow-md hover:shadow-lg disabled:opacity-50" disabled>
+                    <input type="text" id="french-word-input" placeholder="Mot en Français" 
+                           class="w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" 
+                           maxlength="100">
+                    <input type="text" id="translation-input" placeholder="Traduction / Définition" 
+                           class="w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" 
+                           maxlength="200">
+                    <textarea id="example-input" placeholder="Phrase d'exemple (contexte)" rows="2" 
+                              class="w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"></textarea>
+                    
+                    <select id="category-select" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                        <option value="">Sans catégorie</option>
+                        <option value="1">📖 Semaine 1 - Se présenter</option>
+                        <option value="2">🏠 Semaine 2 - Vie quotidienne</option>
+                        <option value="3">✈️ Semaine 3 - Voyages</option>
+                        <option value="4">🍽️ Semaine 4 - Alimentation</option>
+                        <option value="5">💼 Semaine 5 - Travail</option>
+                        <option value="6">📰 Semaine 6 - Médias</option>
+                        <option value="7">🌍 Semaine 7 - Environnement</option>
+                        <option value="8">🎨 Semaine 8 - Culture</option>
+                        <option value="9">👥 Semaine 9 - Relations</option>
+                        <option value="10">📝 Semaine 10 - Révision</option>
+                    </select>
+                    
+                    <button id="add-word-btn" 
+                            class="w-full btn-primary text-white font-bold py-2 px-4 rounded-lg shadow-md hover:shadow-lg disabled:opacity-50" 
+                            disabled>
                         Ajouter au Carnet
                     </button>
                 </div>
@@ -92,7 +205,9 @@
                 <div id="quiz-section" class="flex flex-col justify-center items-center text-center p-4">
                     <div id="quiz-initial-state">
                         <p class="text-gray-600 mb-4">La révision priorise les mots avec le taux d'erreur le plus élevé.</p>
-                        <button id="start-quiz-btn" class="btn-primary text-white font-bold py-2 px-6 rounded-full shadow-lg hover:shadow-xl disabled:opacity-50" disabled>
+                        <button id="start-quiz-btn" 
+                                class="btn-primary text-white font-bold py-2 px-6 rounded-full shadow-lg hover:shadow-xl disabled:opacity-50" 
+                                disabled>
                             Commencer le Quiz (5 mots)
                         </button>
                     </div>
@@ -101,13 +216,16 @@
                         <p id="quiz-progress" class="text-sm text-gray-500 mb-1"></p>
                         <p id="quiz-word" class="text-2xl font-bold text-gray-800 mb-3"></p>
                         <p id="quiz-hint" class="text-sm text-yellow-600 mb-4 p-2 bg-yellow-50 rounded-lg hidden"></p>
-                        <input type="text" id="quiz-answer-input" placeholder="Votre réponse" class="w-full p-3 border border-gray-300 rounded-lg text-lg focus:ring-blue-500 focus:border-blue-500 mb-3">
+                        <input type="text" id="quiz-answer-input" placeholder="Votre réponse" 
+                               class="w-full p-3 border border-gray-300 rounded-lg text-lg focus:ring-blue-500 focus:border-blue-500 mb-3">
                         
                         <div class="flex space-x-2">
-                            <button id="submit-answer-btn" class="flex-1 btn-primary text-white font-bold py-2 rounded-lg shadow-md hover:shadow-lg">
+                            <button id="submit-answer-btn" 
+                                    class="flex-1 btn-primary text-white font-bold py-2 rounded-lg shadow-md hover:shadow-lg">
                                 Soumettre
                             </button>
-                            <button id="hint-btn" class="w-1/4 bg-gray-200 text-gray-800 font-bold py-2 rounded-lg hover:bg-gray-300 shadow-md">
+                            <button id="hint-btn" 
+                                    class="w-1/4 bg-gray-200 text-gray-800 font-bold py-2 rounded-lg hover:bg-gray-300 shadow-md">
                                 Indice
                             </button>
                         </div>
@@ -118,7 +236,8 @@
                     <div id="quiz-results-state" class="hidden w-full max-w-sm">
                         <h3 class="text-2xl font-bold text-green-600 mb-4">Quiz Terminé ! 🎉</h3>
                         <p id="results-summary" class="text-gray-700 mb-6"></p>
-                        <button id="restart-quiz-btn" class="btn-primary text-white font-bold py-2 px-6 rounded-full shadow-lg hover:shadow-xl">
+                        <button id="restart-quiz-btn" 
+                                class="btn-primary text-white font-bold py-2 px-6 rounded-full shadow-lg hover:shadow-xl">
                             Recommencer
                         </button>
                     </div>
@@ -130,8 +249,8 @@
                 </div>
             </div>
             
-            <!-- Colonne 3 (sous la colonne 1 sur mobile): Liste de Vocabulaire -->
-            <div class="lg:col-span-3 card bg-white p-6 rounded-xl mt-8">
+            <!-- Colonne 3: Liste de Vocabulaire -->
+            <div class="lg:col-span-3 card bg-white p-6 rounded-xl mt-6">
                 <h2 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-purple-600" viewBox="0 0 20 20" fill="currentColor">
                         <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h3a1 1 0 011 1v3a1 1 0 01-1 1H4a1 1 0 01-1-1V4zm9 1a1 1 0 00-1 1v3a1 1 0 001 1h3a1 1 0 001-1V6a1 1 0 00-1-1h-3zm-9 7a1 1 0 011-1h3a1 1 0 011 1v3a1 1 0 01-1 1H4a1 1 0 01-1-1v-3zm9 1a1 1 0 00-1 1v3a1 1 0 001 1h3a1 1 0 001-1v-3a1 1 0 00-1-1h-3z" clip-rule="evenodd" />
@@ -143,60 +262,75 @@
                 </div>
             </div>
         </div>
-        
     </div>
 
-    <!-- Modal de Confirmation de Suppression (Utilisé à la place de window.confirm) -->
-    <div id="delete-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden justify-center items-center z-50">
-        <div class="bg-white p-6 rounded-lg shadow-xl max-w-sm w-full">
+    <!-- Modal de Confirmation de Suppression -->
+    <div id="delete-modal" class="modal fixed inset-0 bg-gray-600 bg-opacity-50 hidden justify-center items-center z-50">
+        <div class="bg-white p-6 rounded-lg shadow-xl max-w-sm w-full mx-4">
             <h3 class="text-lg font-bold mb-4">Confirmer la Suppression</h3>
             <p id="delete-modal-text" class="mb-4 text-gray-700"></p>
             <div class="flex justify-end space-x-3">
-                <button id="cancel-delete-btn" class="bg-gray-200 text-gray-800 font-bold py-2 px-4 rounded-lg hover:bg-gray-300">Annuler</button>
-                <button id="confirm-delete-btn" class="bg-red-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-red-700">Supprimer</button>
+                <button id="cancel-delete-btn" class="bg-gray-200 text-gray-800 font-bold py-2 px-4 rounded-lg hover:bg-gray-300">
+                    Annuler
+                </button>
+                <button id="confirm-delete-btn" class="bg-red-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-red-700">
+                    Supprimer
+                </button>
             </div>
         </div>
     </div>
 
-
     <script type="module">
-        // Importations Firebase
+        // ============================================
+        // IMPORTATIONS FIREBASE
+        // ============================================
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, addDoc, setDoc, updateDoc, deleteDoc, onSnapshot, collection, query, orderBy, getDocs, limit, runTransaction, serverTimestamp, setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, doc, addDoc, deleteDoc, onSnapshot, collection, query, orderBy, where, getDocs, limit, runTransaction, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         
-        // **********************************************
-        // GESTION DES VARIABLES GLOBALES FOURNIES PAR CANVAS
-        // **********************************************
-        // Ces variables sont injectées par l'environnement Canvas.
+        // ============================================
+        // CONFIGURATION FIREBASE (CANVAS)
+        // ============================================
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
         const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
         let firebaseConfig = null;
         
-        // Tente de parser la configuration Firebase
         if (typeof __firebase_config !== 'undefined' && __firebase_config) {
             try {
                 firebaseConfig = JSON.parse(__firebase_config);
             } catch (e) {
-                console.error("Erreur lors du parsing de __firebase_config:", e);
-                // Le message d'erreur sera affiché par la fonction initApp
+                console.error("Erreur parsing __firebase_config:", e);
             }
         } else {
-            // Si __firebase_config est undefined ou vide, firebaseConfig reste null
-            console.warn("La variable __firebase_config est manquante ou vide.");
+            console.warn("__firebase_config manquant.");
         }
         
-        // **********************************************
-        // VARIABLES GLOBALES ET ÉLÉMENTS DU DOM
-        // **********************************************
+        // ============================================
+        // VARIABLES GLOBALES
+        // ============================================
         let app, db, auth;
         let currentUserId = null;
         let vocabularyData = [];
+        let filteredData = [];
         let isAuthReady = false;
         let quizWords = [];
         let currentQuizIndex = 0;
         let currentQuizWord = null;
         const QUIZ_SIZE = 5;
+        
+        // Catégories par semaine
+        const CATEGORIES = {
+            '1': '📖 Semaine 1 - Se présenter',
+            '2': '🏠 Semaine 2 - Vie quotidienne',
+            '3': '✈️ Semaine 3 - Voyages',
+            '4': '🍽️ Semaine 4 - Alimentation',
+            '5': '💼 Semaine 5 - Travail',
+            '6': '📰 Semaine 6 - Médias',
+            '7': '🌍 Semaine 7 - Environnement',
+            '8': '🎨 Semaine 8 - Culture',
+            '9': '👥 Semaine 9 - Relations',
+            '10': '📝 Semaine 10 - Révision'
+        };
 
         // Éléments du DOM
         const authStatusP = document.getElementById('auth-status-p');
@@ -208,12 +342,24 @@
         const submitAnswerBtn = document.getElementById('submit-answer-btn');
         const hintBtn = document.getElementById('hint-btn');
         const restartQuizBtn = document.getElementById('restart-quiz-btn');
+        const exportJsonBtn = document.getElementById('export-json-btn');
+        const exportCsvBtn = document.getElementById('export-csv-btn');
+        const importJsonInput = document.getElementById('import-json-input');
+        const resetFiltersBtn = document.getElementById('reset-filters-btn');
         
         const frenchWordInput = document.getElementById('french-word-input');
         const translationInput = document.getElementById('translation-input');
         const exampleInput = document.getElementById('example-input');
+        const categorySelect = document.getElementById('category-select');
+        
+        const searchInput = document.getElementById('search-input');
+        const categoryFilter = document.getElementById('category-filter');
+        const filterSelect = document.getElementById('filter-select');
+        const sortSelect = document.getElementById('sort-select');
+        const resultCount = document.getElementById('result-count');
         
         const wordListDiv = document.getElementById('word-list-div');
+        const statsDashboard = document.getElementById('stats-dashboard');
         
         const quizInitialState = document.getElementById('quiz-initial-state');
         const quizActiveState = document.getElementById('quiz-active-state');
@@ -232,9 +378,24 @@
         const cancelDeleteBtn = document.getElementById('cancel-delete-btn');
         let wordToDeleteId = null;
 
+        // ============================================
+        // FONCTIONS UTILITAIRES
+        // ============================================
+
         /**
-         * Affiche un message d'erreur critique et désactive l'application.
-         * @param {string} message - Le message d'erreur à afficher.
+         * Normalise un mot (minuscules, sans accents, sans ponctuation)
+         */
+        function normalizeWord(word) {
+            return word
+                .toLowerCase()
+                .trim()
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .replace(/[^\w\s-]/g, '');
+        }
+
+        /**
+         * Affiche un message d'erreur critique
          */
         function showCriticalError(message) {
             console.error("ERREUR CRITIQUE:", message);
@@ -244,105 +405,126 @@
             errorMessageP.textContent = message;
             errorMessageBox.classList.remove('hidden');
             
-            // Désactiver toutes les fonctionnalités interactives
             addWordBtn.disabled = true;
             startQuizBtn.disabled = true;
-            addWordBtn.textContent = "Ajouter (Désactivé)";
-            startQuizBtn.textContent = "Quiz (Désactivé)";
-            wordListDiv.innerHTML = `<p class="text-center py-4 text-red-500 font-bold">Impossible de charger la liste. ${message}</p>`;
+            exportJsonBtn.disabled = true;
+            exportCsvBtn.disabled = true;
+            wordListDiv.innerHTML = `<p class="text-center py-4 text-red-500 font-bold">Impossible de charger. ${message}</p>`;
         }
 
         /**
-         * Tente d'initialiser Firebase, l'authentification et le listener de données.
+         * Affiche des messages utilisateur
          */
+        function alertUser(message, type, elementToHighlight = null) {
+            console.log(`ALERTE (${type}): ${message}`);
+            
+            if (elementToHighlight) {
+                elementToHighlight.classList.add('input-error');
+                setTimeout(() => elementToHighlight.classList.remove('input-error'), 3000);
+            }
+
+            if (type === 'success' && message.includes("Mot ajouté")) {
+                const originalText = addWordBtn.textContent;
+                addWordBtn.textContent = "✅ " + message;
+                setTimeout(() => addWordBtn.textContent = originalText, 2000);
+            }
+        }
+
+        // ============================================
+        // INITIALISATION FIREBASE
+        // ============================================
+
         async function initApp() {
-            // 1. Vérification de la configuration Firebase
             if (!firebaseConfig) {
-                showCriticalError("Configuration Firebase manquante ou non parsable. L'application ne peut pas se connecter. Assurez-vous d'utiliser cette application dans l'environnement Canvas.");
+                showCriticalError("Configuration Firebase manquante. Utilisez cette application dans Canvas.");
                 return;
             }
 
-            // 2. Initialisation Firebase
             try {
-                // setLogLevel('debug'); // Décommenter pour le debug
                 app = initializeApp(firebaseConfig);
                 db = getFirestore(app);
                 auth = getAuth(app);
                 authStatusP.textContent = "Connexion en cours...";
                 authStatusIcon.classList.add('bg-yellow-400');
-                errorMessageBox.classList.add('hidden'); // Cacher la boîte d'erreur si la config est bonne
+                errorMessageBox.classList.add('hidden');
             } catch (e) {
                 showCriticalError(`Erreur d'initialisation Firebase : ${e.message}`);
                 return;
             }
 
-            // 3. Authentification
-            // La logique d'authentification est déplacée dans onAuthStateChanged pour gérer le cycle de vie complet.
-            // Tentons d'abord l'authentification initiale.
             try {
                 if (initialAuthToken) {
                     await signInWithCustomToken(auth, initialAuthToken);
-                    console.log("Connexion réussie avec le jeton personnalisé.");
+                    console.log("Connexion avec jeton personnalisé réussie.");
                 } else {
                     await signInAnonymously(auth);
-                    console.warn("Jeton personnalisé manquant. Connexion anonyme réussie.");
+                    console.warn("Jeton manquant. Connexion anonyme.");
                 }
             } catch (e) {
-                // Tenter une connexion anonyme si le jeton personnalisé échoue
-                console.error("Échec de la connexion par jeton. Tentative de connexion anonyme.", e);
+                console.error("Échec connexion par jeton. Tentative anonyme.", e);
                 try {
                     await signInAnonymously(auth);
-                    console.warn("Connexion anonyme réussie après échec du jeton.");
+                    console.warn("Connexion anonyme réussie après échec jeton.");
                 } catch (anonError) {
-                    showCriticalError(`Échec de l'authentification : ${e.message} (Tentative anonyme échouée : ${anonError.message})`);
+                    showCriticalError(`Échec authentification : ${e.message}`);
                     return;
                 }
             }
 
-            // 4. Gestion de l'état d'authentification
             onAuthStateChanged(auth, (user) => {
                 isAuthReady = true;
                 if (user) {
                     currentUserId = user.uid;
-                    authStatusP.textContent = `Connecté (ID: ${user.uid}).`;
+                    authStatusP.textContent = `Connecté (ID: ${user.uid.substring(0, 8)}...).`;
                     authStatusIcon.classList.remove('bg-yellow-400', 'bg-red-600');
                     authStatusIcon.classList.add('bg-green-600');
                     addWordBtn.disabled = false;
-                    addWordBtn.textContent = "Ajouter au Carnet";
+                    exportJsonBtn.disabled = false;
+                    exportCsvBtn.disabled = false;
                     setupRealtimeListener();
                 } else {
                     currentUserId = null;
-                    authStatusP.textContent = "Non connecté. Les données ne seront pas enregistrées.";
+                    authStatusP.textContent = "Non connecté.";
                     authStatusIcon.classList.remove('bg-yellow-400', 'bg-green-600');
                     authStatusIcon.classList.add('bg-red-600');
                     addWordBtn.disabled = true;
-                    addWordBtn.textContent = "Ajouter (Connexion requise)";
-                    // Nettoyer la liste si l'utilisateur se déconnecte
-                    wordListDiv.innerHTML = '<p class="text-center py-4 text-gray-500">Veuillez vous connecter pour voir votre carnet.</p>';
+                    exportJsonBtn.disabled = true;
+                    exportCsvBtn.disabled = true;
+                    wordListDiv.innerHTML = '<p class="text-center py-4 text-gray-500">Veuillez vous connecter.</p>';
                     startQuizBtn.disabled = true;
                 }
             });
 
-            // 5. Événements d'application
-            addWordBtn.addEventListener('click', () => {
-                addWordToFirestore(frenchWordInput.value, translationInput.value, exampleInput.value);
-            });
-            
+            // Event listeners
+            addWordBtn.addEventListener('click', addWord);
             startQuizBtn.addEventListener('click', startQuiz);
             submitAnswerBtn.addEventListener('click', checkAnswer);
             restartQuizBtn.addEventListener('click', startQuiz);
-
-            // Permettre d'appuyer sur Entrée pour soumettre la réponse du quiz
+            hintBtn.addEventListener('click', showHint);
+            
+            exportJsonBtn.addEventListener('click', exportVocabularyJSON);
+            exportCsvBtn.addEventListener('click', exportVocabularyCSV);
+            importJsonInput.addEventListener('change', (e) => {
+                if (e.target.files[0]) {
+                    importVocabularyJSON(e.target.files[0]);
+                }
+            });
+            
+            searchInput.addEventListener('input', handleSearchAndFilter);
+            categoryFilter.addEventListener('change', handleSearchAndFilter);
+            filterSelect.addEventListener('change', handleSearchAndFilter);
+            sortSelect.addEventListener('change', handleSearchAndFilter);
+            resetFiltersBtn.addEventListener('click', resetFilters);
+            
             quizAnswerInput.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter') {
                     e.preventDefault();
-                    if (quizActiveState.classList.contains('hidden') === false) {
+                    if (!quizActiveState.classList.contains('hidden')) {
                         checkAnswer();
                     }
                 }
             });
 
-            hintBtn.addEventListener('click', showHint);
             cancelDeleteBtn.addEventListener('click', hideDeleteModal);
             confirmDeleteBtn.addEventListener('click', () => {
                 if (wordToDeleteId) {
@@ -351,32 +533,23 @@
                 }
             });
         }
-        
-        // **********************************************
-        // FONCTIONS FIREBASE
-        // **********************************************
-        
-        /**
-         * Retourne la référence à la collection de vocabulaire de l'utilisateur.
-         * @returns {import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js").CollectionReference}
-         */
+
+        // ============================================
+        // FONCTIONS FIRESTORE
+        // ============================================
+
         function getVocabularyCollectionRef() {
             if (!currentUserId) {
-                console.error("Tentative d'accès à Firestore sans ID utilisateur.");
+                console.error("Pas d'ID utilisateur.");
                 return null;
             }
-            // Chemin de données PRIVÉ: /artifacts/{appId}/users/{userId}/vocabulary
             return collection(db, `artifacts/${appId}/users/${currentUserId}/vocabulary`);
         }
 
-        /**
-         * Établit un listener en temps réel pour la liste de vocabulaire.
-         */
         function setupRealtimeListener() {
             const vocabColRef = getVocabularyCollectionRef();
             if (!vocabColRef) return;
 
-            // La requête trie par timestamp de création pour afficher les nouveaux mots en premier
             const q = query(vocabColRef, orderBy('createdAt', 'desc'));
 
             onSnapshot(q, (snapshot) => {
@@ -385,46 +558,64 @@
                     ...doc.data()
                 }));
                 
-                // Mettre à jour l'interface utilisateur
-                renderVocabularyList(vocabularyData);
-                // Mettre à jour l'état du bouton Quiz
+                handleSearchAndFilter();
                 updateQuizButtonState();
+                renderStatsDashboard();
             }, (error) => {
-                console.error("Erreur de récupération des données:", error);
-                wordListDiv.innerHTML = `<p class="text-center py-4 text-red-500">Erreur de chargement: ${error.message}</p>`;
-                updateQuizButtonState(true); // Désactiver le quiz en cas d'erreur
+                console.error("Erreur récupération données:", error);
+                wordListDiv.innerHTML = `<p class="text-center py-4 text-red-500">Erreur: ${error.message}</p>`;
+                updateQuizButtonState(true);
             });
         }
-        
-        /**
-         * Ajoute ou met à jour un mot dans Firestore.
-         * @param {string} frenchWord Le mot en français.
-         * @param {string} translation La traduction.
-         * @param {string} example La phrase d'exemple.
-         */
-        async function addWordToFirestore(frenchWord, translation, example) {
+
+        async function addWord() {
             const vocabColRef = getVocabularyCollectionRef();
             if (!vocabColRef) return;
             
-            const french = frenchWord.trim();
-            const trans = translation.trim();
-            const ex = example.trim();
+            const french = frenchWordInput.value.trim();
+            const trans = translationInput.value.trim();
+            const ex = exampleInput.value.trim();
+            const cat = categorySelect.value;
 
             if (!french || !trans) {
                 alertUser("Veuillez saisir le mot et sa traduction.", "error", frenchWordInput);
                 return;
             }
 
-            try {
-                // Normaliser le mot français pour une recherche et éviter les doublons (avec un index manuel)
-                const normalizedFrenchWord = french.toLowerCase();
+            if (french.length > 100 || trans.length > 200) {
+                alertUser("Le mot ou la traduction est trop long.", "error");
+                return;
+            }
 
-                // Créer le nouveau mot
+            try {
+                const normalizedFrenchWord = normalizeWord(french);
+
+                // Vérification doublons
+                const duplicateQuery = query(
+                    vocabColRef, 
+                    where('normalized', '==', normalizedFrenchWord),
+                    limit(1)
+                );
+                
+                const duplicateDocs = await getDocs(duplicateQuery);
+                
+                if (!duplicateDocs.empty) {
+                    const existingWord = duplicateDocs.docs[0].data();
+                    alertUser(
+                        `Ce mot existe déjà: "${existingWord.french}" → ${existingWord.translation}`, 
+                        "error", 
+                        frenchWordInput
+                    );
+                    return;
+                }
+
                 const newWord = {
                     french: french,
                     translation: trans,
                     example: ex,
                     normalized: normalizedFrenchWord,
+                    category: cat ? CATEGORIES[cat] : null,
+                    module: cat ? parseInt(cat) : null,
                     errorCount: 0,
                     successCount: 0,
                     lastReviewed: serverTimestamp(),
@@ -434,21 +625,18 @@
                 await addDoc(vocabColRef, newWord);
 
                 alertUser("Mot ajouté avec succès !", "success");
-                // Réinitialiser les champs
                 frenchWordInput.value = '';
                 translationInput.value = '';
                 exampleInput.value = '';
+                categorySelect.value = '';
+                frenchWordInput.focus();
 
             } catch (e) {
                 alertUser(`Erreur lors de l'ajout: ${e.message}`, "error");
-                console.error("Erreur lors de l'ajout du mot: ", e);
+                console.error("Erreur ajout:", e);
             }
         }
-        
-        /**
-         * Supprime un mot de Firestore.
-         * @param {string} docId L'ID du document à supprimer.
-         */
+
         async function deleteWordFromFirestore(docId) {
             const vocabColRef = getVocabularyCollectionRef();
             if (!vocabColRef) return;
@@ -457,16 +645,11 @@
                 await deleteDoc(doc(vocabColRef, docId));
                 alertUser("Mot supprimé.", "success");
             } catch (e) {
-                alertUser(`Erreur lors de la suppression: ${e.message}`, "error");
-                console.error("Erreur lors de la suppression du mot: ", e);
+                alertUser(`Erreur suppression: ${e.message}`, "error");
+                console.error("Erreur suppression:", e);
             }
         }
 
-        /**
-         * Met à jour les statistiques de réussite/erreur après un quiz.
-         * @param {string} docId L'ID du mot.
-         * @param {boolean} success Vrai si la réponse était correcte.
-         */
         async function updateWordStats(docId, success) {
             const vocabColRef = getVocabularyCollectionRef();
             if (!vocabColRef) return;
@@ -493,114 +676,408 @@
 
                     transaction.update(wordRef, updates);
                 });
-                // console.log("Transaction réussie pour les statistiques.");
             } catch (e) {
-                console.error("Échec de la transaction des statistiques: ", e);
+                console.error("Échec transaction stats:", e);
             }
         }
 
-        // **********************************************
-        // LOGIQUE D'AFFICHAGE ET D'INTERFACE UTILISATEUR
-        // **********************************************
+        // ============================================
+        // RECHERCHE ET FILTRES
+        // ============================================
 
-        /**
-         * Affiche des messages utilisateur (simule alert/confirm dans l'UI).
-         * NOTE: J'utilise une simple coloration/mise en évidence ici au lieu d'une modale
-         * pour rester simple, sauf pour la suppression.
-         * @param {string} message Le message à afficher.
-         * @param {'success'|'error'} type Le type de message.
-         * @param {HTMLElement} [elementToHighlight] L'élément à mettre en évidence.
-         */
-        function alertUser(message, type, elementToHighlight = null) {
-            console.log(`ALERTE (${type}): ${message}`);
+        function searchAndFilterVocabulary() {
+            let filtered = [...vocabularyData];
             
-            if (elementToHighlight) {
-                elementToHighlight.classList.add('input-error');
-                setTimeout(() => elementToHighlight.classList.remove('input-error'), 3000);
+            const searchTerm = searchInput.value.toLowerCase();
+            const categoryVal = categoryFilter.value;
+            const filterType = filterSelect.value;
+            const sortBy = sortSelect.value;
+            
+            // Recherche
+            if (searchTerm && searchTerm.length > 0) {
+                filtered = filtered.filter(word => 
+                    word.french.toLowerCase().includes(searchTerm) ||
+                    word.translation.toLowerCase().includes(searchTerm) ||
+                    (word.example && word.example.toLowerCase().includes(searchTerm))
+                );
             }
+            
+            // Filtre catégorie
+            if (categoryVal !== 'all') {
+                if (categoryVal === '0') {
+                    filtered = filtered.filter(w => !w.module);
+                } else {
+                    filtered = filtered.filter(w => w.module === parseInt(categoryVal));
+                }
+            }
+            
+            // Filtres type
+            switch (filterType) {
+                case 'difficult':
+                    filtered = filtered.filter(word => {
+                        const total = (word.errorCount || 0) + (word.successCount || 0);
+                        return total > 0 && (word.errorCount / total) > 0.5;
+                    });
+                    break;
+                case 'new':
+                    filtered = filtered.filter(word => 
+                        (word.errorCount || 0) === 0 && (word.successCount || 0) === 0
+                    );
+                    break;
+                case 'mastered':
+                    filtered = filtered.filter(word => {
+                        const total = (word.errorCount || 0) + (word.successCount || 0);
+                        const successRate = total > 0 ? (word.successCount / total) : 0;
+                        return total >= 5 && successRate >= 0.8;
+                    });
+                    break;
+            }
+            
+            // Tri
+            switch (sortBy) {
+                case 'date-desc':
+                    filtered.sort((a, b) => {
+                        const dateA = a.createdAt?.toDate ? a.createdAt.toDate() : new Date(a.createdAt || 0);
+                        const dateB = b.createdAt?.toDate ? b.createdAt.toDate() : new Date(b.createdAt || 0);
+                        return dateB - dateA;
+                    });
+                    break;
+                case 'date-asc':
+                    filtered.sort((a, b) => {
+                        const dateA = a.createdAt?.toDate ? a.createdAt.toDate() : new Date(a.createdAt || 0);
+                        const dateB = b.createdAt?.toDate ? b.createdAt.toDate() : new Date(b.createdAt || 0);
+                        return dateA - dateB;
+                    });
+                    break;
+                case 'alpha':
+                    filtered.sort((a, b) => a.french.localeCompare(b.french, 'fr'));
+                    break;
+                case 'error-rate':
+                    filtered.sort((a, b) => {
+                        const totalA = (a.errorCount || 0) + (a.successCount || 0);
+                        const totalB = (b.errorCount || 0) + (b.successCount || 0);
+                        const rateA = totalA > 0 ? a.errorCount / totalA : 0;
+                        const rateB = totalB > 0 ? b.errorCount / totalB : 0;
+                        return rateB - rateA;
+                    });
+                    break;
+            }
+            
+            return filtered;
+        }
 
-            // Pour l'ajout, on peut temporairement changer le texte du bouton d'ajout
-            if (type === 'success' && message.includes("Mot ajouté")) {
-                const originalText = addWordBtn.textContent;
-                addWordBtn.textContent = "✅ " + message;
-                setTimeout(() => addWordBtn.textContent = originalText, 2000);
+        function handleSearchAndFilter() {
+            filteredData = searchAndFilterVocabulary();
+            renderVocabularyList(filteredData);
+            
+            if (filteredData.length === vocabularyData.length) {
+                resultCount.textContent = `${filteredData.length} mots au total`;
+            } else {
+                resultCount.textContent = `${filteredData.length} mot(s) trouvé(s) sur ${vocabularyData.length}`;
             }
         }
 
-        /**
-         * Affiche la modale de confirmation de suppression.
-         * @param {string} id L'ID du document à supprimer.
-         * @param {string} word Le mot concerné.
-         */
-        function showDeleteModal(id, word) {
-            wordToDeleteId = id;
-            document.getElementById('delete-modal-text').textContent = `Êtes-vous sûr de vouloir supprimer le mot "${word}" de votre carnet ? Cette action est irréversible.`;
-            deleteModal.classList.remove('hidden', 'opacity-0');
-            deleteModal.classList.add('flex', 'opacity-100');
+        function resetFilters() {
+            searchInput.value = '';
+            categoryFilter.value = 'all';
+            filterSelect.value = 'all';
+            sortSelect.value = 'date-desc';
+            handleSearchAndFilter();
         }
 
-        /**
-         * Cache la modale de confirmation de suppression.
-         */
-        function hideDeleteModal() {
-            wordToDeleteId = null;
-            deleteModal.classList.remove('flex', 'opacity-100');
-            deleteModal.classList.add('hidden', 'opacity-0');
+        // ============================================
+        // STATISTIQUES
+        // ============================================
+
+        function calculateGlobalStats() {
+            if (vocabularyData.length === 0) {
+                return {
+                    totalWords: 0,
+                    newWords: 0,
+                    masteredWords: 0,
+                    difficultWords: 0,
+                    globalSuccessRate: 0
+                };
+            }
+            
+            let totalErrors = 0;
+            let totalSuccess = 0;
+            let newWords = 0;
+            let masteredWords = 0;
+            let difficultWords = 0;
+            
+            vocabularyData.forEach(word => {
+                const errors = word.errorCount || 0;
+                const success = word.successCount || 0;
+                const total = errors + success;
+                
+                totalErrors += errors;
+                totalSuccess += success;
+                
+                if (total === 0) newWords++;
+                if (total >= 5 && (success / total) >= 0.8) masteredWords++;
+                if (total > 0 && (errors / total) > 0.5) difficultWords++;
+            });
+            
+            const globalTotal = totalErrors + totalSuccess;
+            const globalSuccessRate = globalTotal > 0 ? ((totalSuccess / globalTotal) * 100).toFixed(1) : 0;
+            
+            return {
+                totalWords: vocabularyData.length,
+                newWords,
+                masteredWords,
+                difficultWords,
+                globalSuccessRate
+            };
         }
 
-        /**
-         * Rend la liste des mots dans l'interface utilisateur.
-         * @param {Array<Object>} words L'array de mots à afficher.
-         */
-        function renderVocabularyList(words) {
-            if (words.length === 0) {
-                wordListDiv.innerHTML = '<p class="text-center py-4 text-gray-500">Votre carnet de vocabulaire est vide. Ajoutez votre premier mot !</p>';
+        function renderStatsDashboard() {
+            if (vocabularyData.length === 0) {
+                statsDashboard.innerHTML = '';
                 return;
             }
 
-            wordListDiv.innerHTML = ''; // Nettoyer l'ancienne liste
+            const stats = calculateGlobalStats();
+            
+            statsDashboard.innerHTML = `
+                <div class="grid grid-cols-2 md:grid-cols-5 gap-4 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg card">
+                    <div class="text-center">
+                        <p class="text-3xl font-bold text-blue-600">${stats.totalWords}</p>
+                        <p class="text-xs text-gray-600">Total mots</p>
+                    </div>
+                    <div class="text-center">
+                        <p class="text-3xl font-bold text-green-600">${stats.masteredWords}</p>
+                        <p class="text-xs text-gray-600">Maîtrisés</p>
+                    </div>
+                    <div class="text-center">
+                        <p class="text-3xl font-bold text-red-600">${stats.difficultWords}</p>
+                        <p class="text-xs text-gray-600">Difficiles</p>
+                    </div>
+                    <div class="text-center">
+                        <p class="text-3xl font-bold text-yellow-600">${stats.newWords}</p>
+                        <p class="text-xs text-gray-600">Nouveaux</p>
+                    </div>
+                    <div class="text-center">
+                        <p class="text-3xl font-bold text-purple-600">${stats.globalSuccessRate}%</p>
+                        <p class="text-xs text-gray-600">Taux réussite</p>
+                    </div>
+                </div>
+            `;
+        }
+
+        // ============================================
+        // EXPORT / IMPORT
+        // ============================================
+
+        function exportVocabularyJSON() {
+            if (vocabularyData.length === 0) {
+                alertUser("Carnet vide, rien à exporter.", "error");
+                return;
+            }
+
+            const cleanedData = vocabularyData.map(word => ({
+                french: word.french,
+                translation: word.translation,
+                example: word.example || "",
+                category: word.category || null,
+                module: word.module || null,
+                errorCount: word.errorCount || 0,
+                successCount: word.successCount || 0
+            }));
+
+            const exportData = {
+                version: "1.0",
+                exportDate: new Date().toISOString(),
+                totalWords: cleanedData.length,
+                words: cleanedData
+            };
+
+            const dataStr = JSON.stringify(exportData, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `vocabulaire_b1_${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+
+            alertUser(`Export réussi: ${cleanedData.length} mots.`, "success");
+        }
+
+        function exportVocabularyCSV() {
+            if (vocabularyData.length === 0) {
+                alertUser("Carnet vide, rien à exporter.", "error");
+                return;
+            }
+
+            let csv = "Mot Français,Traduction,Exemple,Catégorie,Erreurs,Réussites,Taux d'Erreur (%)\n";
+
+            vocabularyData.forEach(word => {
+                const errorCount = word.errorCount || 0;
+                const successCount = word.successCount || 0;
+                const total = errorCount + successCount;
+                const errorRate = total > 0 ? ((errorCount / total) * 100).toFixed(0) : 0;
+
+                const french = `"${(word.french || '').replace(/"/g, '""')}"`;
+                const translation = `"${(word.translation || '').replace(/"/g, '""')}"`;
+                const example = `"${(word.example || '').replace(/"/g, '""')}"`;
+                const category = `"${(word.category || 'Sans catégorie').replace(/"/g, '""')}"`;
+
+                csv += `${french},${translation},${example},${category},${errorCount},${successCount},${errorRate}\n`;
+            });
+
+            const BOM = '\uFEFF';
+            const csvBlob = new Blob([BOM + csv], { type: 'text/csv;charset=utf-8;' });
+            
+            const url = URL.createObjectURL(csvBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `vocabulaire_b1_${new Date().toISOString().split('T')[0]}.csv`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+
+            alertUser(`Export CSV réussi: ${vocabularyData.length} mots.`, "success");
+        }
+
+        async function importVocabularyJSON(file) {
+            if (!file) return;
+
+            try {
+                const text = await file.text();
+                const importData = JSON.parse(text);
+
+                if (!importData.words || !Array.isArray(importData.words)) {
+                    alertUser("Format JSON invalide.", "error");
+                    return;
+                }
+
+                const vocabColRef = getVocabularyCollectionRef();
+                if (!vocabColRef) {
+                    alertUser("Collection Firebase non accessible.", "error");
+                    return;
+                }
+
+                let imported = 0;
+                let skipped = 0;
+
+                for (const word of importData.words) {
+                    if (!word.french || !word.translation) {
+                        skipped++;
+                        continue;
+                    }
+
+                    const normalizedFrenchWord = normalizeWord(word.french);
+
+                    const duplicateQuery = query(
+                        vocabColRef,
+                        where('normalized', '==', normalizedFrenchWord),
+                        limit(1)
+                    );
+                    const duplicateDocs = await getDocs(duplicateQuery);
+
+                    if (!duplicateDocs.empty) {
+                        skipped++;
+                        continue;
+                    }
+
+                    const newWord = {
+                        french: word.french.trim(),
+                        translation: word.translation.trim(),
+                        example: word.example || "",
+                        normalized: normalizedFrenchWord,
+                        category: word.category || null,
+                        module: word.module || null,
+                        errorCount: word.errorCount || 0,
+                        successCount: word.successCount || 0,
+                        lastReviewed: serverTimestamp(),
+                        createdAt: serverTimestamp()
+                    };
+
+                    await addDoc(vocabColRef, newWord);
+                    imported++;
+                }
+
+                alertUser(
+                    `Import: ${imported} mots ajoutés, ${skipped} ignorés.`,
+                    "success"
+                );
+                
+                // Reset input
+                importJsonInput.value = '';
+
+            } catch (e) {
+                alertUser(`Erreur import: ${e.message}`, "error");
+                console.error("Erreur import:", e);
+            }
+        }
+
+        // ============================================
+        // AFFICHAGE LISTE
+        // ============================================
+
+        function renderVocabularyList(words) {
+            if (words.length === 0) {
+                wordListDiv.innerHTML = '<p class="text-center py-4 text-gray-500">Aucun mot trouvé.</p>';
+                return;
+            }
+
+            wordListDiv.innerHTML = '';
 
             words.forEach(word => {
                 const totalAttempts = (word.errorCount || 0) + (word.successCount || 0);
                 const errorRate = totalAttempts > 0 ? ((word.errorCount / totalAttempts) * 100).toFixed(0) : 0;
                 
-                // Déterminer la couleur de la barre de progression
                 let colorClass;
                 if (errorRate >= 75) colorClass = 'bg-red-500';
                 else if (errorRate >= 50) colorClass = 'bg-orange-500';
                 else if (errorRate >= 25) colorClass = 'bg-yellow-500';
                 else colorClass = 'bg-green-500';
 
+                const categoryBadge = word.category ? 
+                    `<span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">${word.category}</span>` : '';
+
                 const wordCard = document.createElement('div');
-                wordCard.className = 'p-4 border border-gray-200 rounded-lg shadow-sm bg-white hover:bg-gray-50';
+                wordCard.className = 'p-4 border border-gray-200 rounded-lg shadow-sm bg-white hover:bg-gray-50 transition';
                 wordCard.innerHTML = `
                     <div class="flex justify-between items-start">
-                        <!-- Contenu du mot -->
-                        <div>
-                            <p class="text-lg font-bold text-gray-900">${word.french}</p>
+                        <div class="flex-1">
+                            <div class="flex items-center gap-2 mb-1">
+                                <p class="text-lg font-bold text-gray-900">${word.french}</p>
+                                <button class="speak-btn text-blue-500 hover:text-blue-700 text-xl" data-word="${word.french}" title="Écouter la prononciation">
+                                    🔊
+                                </button>
+                            </div>
                             <p class="text-sm text-blue-600 italic">${word.translation}</p>
-                            <p class="text-xs text-gray-500 mt-1">${word.example || "Pas d'exemple fourni."}</p>
+                            <p class="text-xs text-gray-500 mt-1">${word.example || "Pas d'exemple."}</p>
+                            <div class="mt-2">${categoryBadge}</div>
                         </div>
-                        <!-- Bouton de suppression -->
-                        <button class="delete-btn text-red-400 hover:text-red-600 ml-4 p-1 rounded-full hover:bg-red-50" data-id="${word.id}" data-word="${word.french}">
+                        <button class="delete-btn text-red-400 hover:text-red-600 ml-4 p-1 rounded-full hover:bg-red-50" 
+                                data-id="${word.id}" data-word="${word.french}">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                                 <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 10-2 0v6a1 1 0 102 0V8z" clip-rule="evenodd" />
                             </svg>
                         </button>
                     </div>
                     
-                    <!-- Statistiques et Barre de Progrès -->
                     <div class="mt-3">
-                        <p class="text-xs text-gray-700 font-medium">Taux d'Erreur: <span class="font-bold">${errorRate}%</span> (Erreurs: ${word.errorCount || 0} / Total: ${totalAttempts})</p>
+                        <p class="text-xs text-gray-700 font-medium">
+                            Taux d'Erreur: <span class="font-bold">${errorRate}%</span> 
+                            (Erreurs: ${word.errorCount || 0} / Total: ${totalAttempts})
+                        </p>
                         <div class="w-full bg-gray-200 rounded-full h-1.5 mt-1">
-                            <div class="h-1.5 rounded-full" style="width: ${errorRate}%; background-color: ${errorRate > 0 ? colorClass : 'transparent'};"></div>
+                            <div class="${colorClass} h-1.5 rounded-full transition-all" style="width: ${errorRate}%;"></div>
                         </div>
                     </div>
                 `;
                 wordListDiv.appendChild(wordCard);
             });
 
-            // Attacher les écouteurs pour les boutons de suppression
+            // Event listeners
             document.querySelectorAll('.delete-btn').forEach(button => {
                 button.addEventListener('click', (e) => {
                     const id = e.currentTarget.getAttribute('data-id');
@@ -608,29 +1085,63 @@
                     showDeleteModal(id, word);
                 });
             });
+
+            document.querySelectorAll('.speak-btn').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const word = e.currentTarget.getAttribute('data-word');
+                    speakWord(word);
+                });
+            });
         }
 
-        /**
-         * Met à jour l'état du bouton Quiz (désactivé s'il n'y a pas assez de mots).
-         * @param {boolean} [forceDisable=false] Force la désactivation en cas d'erreur Firestore.
-         */
+        // ============================================
+        // AUDIO PRONONCIATION
+        // ============================================
+
+        function speakWord(text, lang = 'fr-FR') {
+            if ('speechSynthesis' in window) {
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = lang;
+                utterance.rate = 0.8;
+                utterance.pitch = 1.0;
+                window.speechSynthesis.speak(utterance);
+            } else {
+                console.warn("API Speech Synthesis non supportée.");
+            }
+        }
+
+        // ============================================
+        // MODALS
+        // ============================================
+
+        function showDeleteModal(id, word) {
+            wordToDeleteId = id;
+            document.getElementById('delete-modal-text').textContent = 
+                `Êtes-vous sûr de vouloir supprimer "${word}" ? Cette action est irréversible.`;
+            deleteModal.classList.remove('hidden');
+            deleteModal.classList.add('flex');
+        }
+
+        function hideDeleteModal() {
+            wordToDeleteId = null;
+            deleteModal.classList.remove('flex');
+            deleteModal.classList.add('hidden');
+        }
+
+        // ============================================
+        // QUIZ
+        // ============================================
+
         function updateQuizButtonState(forceDisable = false) {
             if (forceDisable || vocabularyData.length < QUIZ_SIZE) {
                 startQuizBtn.disabled = true;
-                startQuizBtn.textContent = `Commencer le Quiz (${QUIZ_SIZE} mots requis)`;
+                startQuizBtn.textContent = `Commencer (${QUIZ_SIZE} mots requis)`;
             } else {
                 startQuizBtn.disabled = false;
                 startQuizBtn.textContent = `Commencer le Quiz (${QUIZ_SIZE} mots)`;
             }
         }
-        
-        // **********************************************
-        // LOGIQUE DU QUIZ
-        // **********************************************
 
-        /**
-         * Commence un nouveau quiz en sélectionnant les mots les plus problématiques.
-         */
         function startQuiz() {
             if (vocabularyData.length < QUIZ_SIZE) {
                 quizInitialState.classList.add('hidden');
@@ -640,19 +1151,15 @@
                 return;
             }
 
-            // 1. Calculer un score de difficulté (plus le taux d'erreur est haut, plus le score est haut)
             const wordsWithScore = vocabularyData.map(word => {
                 const total = (word.errorCount || 0) + (word.successCount || 0);
-                const errorRate = total > 0 ? word.errorCount / total : 1; // Les nouveaux mots ont un taux de 1 (max)
-                // Score = Taux d'erreur * (1 + tentatives)
+                const errorRate = total > 0 ? word.errorCount / total : 1;
                 word.difficultyScore = errorRate * (1 + total);
                 return word;
             });
             
-            // 2. Trier par score de difficulté (descendant)
             wordsWithScore.sort((a, b) => b.difficultyScore - a.difficultyScore);
 
-            // 3. Sélectionner les mots pour le quiz
             quizWords = wordsWithScore.slice(0, QUIZ_SIZE).map(word => ({
                 id: word.id,
                 french: word.french,
@@ -664,7 +1171,6 @@
 
             currentQuizIndex = 0;
             
-            // 4. Initialisation de l'UI du quiz
             quizInitialState.classList.add('hidden');
             quizResultsState.classList.add('hidden');
             quizNoWordsState.classList.add('hidden');
@@ -674,9 +1180,6 @@
             loadNextQuestion();
         }
 
-        /**
-         * Charge la prochaine question du quiz.
-         */
         function loadNextQuestion() {
             if (currentQuizIndex >= QUIZ_SIZE) {
                 showQuizResults();
@@ -686,7 +1189,7 @@
             currentQuizWord = quizWords[currentQuizIndex];
             
             quizProgressP.textContent = `Question ${currentQuizIndex + 1} / ${QUIZ_SIZE}`;
-            quizWordP.textContent = currentQuizWord.translation; // On donne la traduction, l'utilisateur doit donner le mot français
+            quizWordP.textContent = currentQuizWord.translation;
             
             quizAnswerInput.value = '';
             quizAnswerInput.focus();
@@ -695,18 +1198,12 @@
             hintBtn.disabled = false;
         }
 
-        /**
-         * Affiche l'indice (la phrase d'exemple)
-         */
         function showHint() {
             quizHintP.textContent = `Indice: "${currentQuizWord.example}"`;
             quizHintP.classList.remove('hidden');
-            hintBtn.disabled = true; // Un seul indice par question
+            hintBtn.disabled = true;
         }
 
-        /**
-         * Vérifie la réponse de l'utilisateur.
-         */
         async function checkAnswer() {
             const userAnswer = quizAnswerInput.value.trim().toLowerCase();
             const correctAnswer = currentQuizWord.french.toLowerCase();
@@ -716,8 +1213,7 @@
             submitAnswerBtn.disabled = true;
 
             quizFeedbackDiv.classList.remove('hidden');
-            quizFeedbackDiv.classList.remove('bg-red-200', 'bg-green-200');
-            quizFeedbackDiv.classList.remove('text-red-800', 'text-green-800');
+            quizFeedbackDiv.classList.remove('bg-red-200', 'bg-green-200', 'text-red-800', 'text-green-800');
 
             if (isCorrect) {
                 quizFeedbackDiv.textContent = `✅ Correct ! Le mot était bien : ${currentQuizWord.french}.`;
@@ -729,10 +1225,8 @@
                 quizWords[currentQuizIndex].wrong = 1;
             }
             
-            // Mettre à jour les statistiques dans Firestore
             await updateWordStats(currentQuizWord.id, isCorrect);
 
-            // Avancer à la question suivante après un court délai
             setTimeout(() => {
                 currentQuizIndex++;
                 quizAnswerInput.disabled = false;
@@ -741,9 +1235,6 @@
             }, 2000);
         }
 
-        /**
-         * Affiche les résultats finaux du quiz.
-         */
         function showQuizResults() {
             quizActiveState.classList.add('hidden');
             quizResultsState.classList.remove('hidden');
@@ -753,14 +1244,15 @@
             const percentage = ((totalCorrect / totalQuestions) * 100).toFixed(0);
 
             resultsSummaryP.innerHTML = `
-                Vous avez obtenu <strong>${totalCorrect} / ${totalQuestions}</strong> bonnes réponses, soit un taux de <strong>${percentage}%</strong>.
-                <br>Continuez à réviser les mots surlignés en rouge !
+                Vous avez obtenu <strong>${totalCorrect} / ${totalQuestions}</strong> bonnes réponses, 
+                soit <strong>${percentage}%</strong>.
+                <br>Continuez à réviser les mots difficiles !
             `;
         }
 
-        // **********************************************
+        // ============================================
         // INITIALISATION
-        // **********************************************
+        // ============================================
         initApp();
     </script>
 </body>
